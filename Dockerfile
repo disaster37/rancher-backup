@@ -5,7 +5,7 @@ MAINTAINER Sebastien LANGOUREAUX <linuxworkgroup@hotmail.com>
 
 # Add duplicity to manage backup
 RUN apt-get update && \
-    apt-get -y duplicity ncftp python-paramiko python-gobject-2 python-boto
+    apt-get install -y duplicity ncftp python-paramiko python-gobject-2 python-boto mysql-client postgresql-client
 
 
 
