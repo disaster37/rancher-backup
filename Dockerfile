@@ -10,9 +10,9 @@ RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 36A1D7869245C8
 
 # Add duplicity to manage backup
 RUN apt-get update && \
-    apt-get install -y lxc-docker duplicity ncftp python-paramiko python-gobject-2 python-boto
+    apt-get install -y lxc-docker duplicity ncftp python-paramiko python-gobject-2 python-boto vim
 
-
+COPY assets/init.py /app/init.py
 
 
 
