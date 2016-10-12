@@ -12,7 +12,12 @@ BACKUP_DIR = '/backup'
 
 class ServiceRun():
 
-  def __get_list_mysql(self):
+
+  def run(self):
+
+
+
+  def _get_list_mysql(self):
 
       # Check on link container that start by mysql
       metadata_manager = MetadataAPI()
@@ -57,6 +62,9 @@ class ServiceRun():
 
       list_postgresql = self._get_list_postgresql()
 
+      # First, we pull the last postgres images
+      os.system('docker pull postgres')
+
       for database in list_postgresql:
 
           cmd = 'pg_dump -h ' + database['host']
@@ -71,7 +79,7 @@ class ServiceRun():
 
           os.system('mkdir -p ' + path)
           print(cmd + ' -f ' + path + '/' + database['host'] + '_' + database['db'] + '.sql')
-          os.system(cmd + ' -f ' + path + '/' + database['host'] + '_' + database['db'] + '.sql')
+          os.system('docker run --rm -ti -v ' + BACKUP_DIR:BACKUP_DIR + ' postgres ' + cmd + ' -f ' + path + '/' + database['host'] + '_' + database['db'] + '.sql')
           print("We just dump " + database['name'] + " on host " + database['host'])
 
 
