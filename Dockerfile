@@ -23,5 +23,5 @@ COPY assets/* /app/
 RUN rm -rf /tmp/* /var/tmp/*
 
 VOLUME ["${BACKUP_DIR}"]
-
-#ENTRYPOINT ["duplicity"]
+WORKDIR ${BACKUP_DIR}
+CMD ["/app/run"]
