@@ -1,23 +1,24 @@
-FROM quay.io/webcenter/rancher-base-image:latest
+FROM jpetazzo/dind:latest
 MAINTAINER Sebastien LANGOUREAUX <linuxworkgroup@hotmail.com>
 
+ENV BACKUP_DIR /backup
 
-# Add docker source
+# Add libs & tools
 RUN apt-get update && \
-    apt-get install apt-transport-https
-RUN echo 'deb http://get.docker.io/ubuntu docker main' >> /etc/apt/sources.list
-RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+    apt-get install -y --no-install-recommends python-all python-yaml python-pip duplicity lftp ncftp python-paramiko python-gobject-2 python-boto && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Add duplicity to manage backup
-RUN apt-get update && \
-    apt-get install -y lxc-docker duplicity ncftp python-paramiko python-gobject-2 python-boto
+# Add rancher api
+RUN pip install rancher_metadata
 
+# Install go-cron
+RUN curl -sL https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz \
+    | tar -x -C /usr/local/bin
 
+# CLEAN Image
+RUN rm -rf /tmp/* /var/tmp/*
 
-# CLEAN APT
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
+VOLUME ["${BACKUP_DIR}"]
 
 #ENTRYPOINT ["duplicity"]
-VOLUME ["/backup"]
-#CMD ["npm", "start"]

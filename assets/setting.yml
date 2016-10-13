@@ -1,0 +1,21 @@
+postgres:
+  regex: "postgres-"
+  image: "postgres:latest"
+  command: "PGPASSWORD=${db_password} pg_dump -h ${db_host} -U ${db_user} -d ${db_name} -f ${target}"
+  environment:
+    - db_password:%service_name_env%_ENV_POSTGRES_PASSWORD
+    - db_user:%service_name_env%_ENV_POSTGRES_USER
+    - db_host:%service_name%
+    - db_name:%service_name_env%_ENV_POSTGRES_DB
+    - target:${BACKUP_DIR}/%service_path%/%service_name_env%_ENV_POSTGRES_DB.dump
+
+mysql:
+  regex: "mysql-"
+  image: "mysql:latest"
+  command: "mysqldump -h ${db_host} -u {db_user} -p ${db_password} ${db_name} > ${target}"
+  environment:
+    - db_password:%service_name_env%_ENV_MYSQL_PASSWORD
+    - db_user:%service_name_env%_ENV_MYSQL_USER
+    - db_host:%service_name%
+    - db_name:%service_name_env%_ENV_MYSQL_DATABASE
+    - target:${BACKUP_DIR}/%service_path%/%service_name_env%_ENV_MYSQL_DATABASE.dump
