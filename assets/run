@@ -1,5 +1,0 @@
-#!/bin/bash
-/usr/local/bin/wrapdocker
-cd /app
-python /app/init.py init
-exec go-cron "${CRON_SCHEDULE}" /bin/bash -c "python /app/init.py"

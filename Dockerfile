@@ -5,7 +5,7 @@ ENV BACKUP_DIR /backup
 
 # Add libs & tools
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python-all python-yaml python-pip duplicity lftp ncftp python-paramiko python-gobject-2 python-boto && \
+    apt-get install -y --no-install-recommends supervisor python-all python-yaml python-pip duplicity lftp ncftp python-paramiko python-gobject-2 python-boto && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -18,11 +18,11 @@ RUN curl -sL https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cro
 
 # Add backup script
 COPY assets/* /app/
-RUN chmod +x /app/run
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # CLEAN Image
 RUN rm -rf /tmp/* /var/tmp/*
 
 VOLUME ["${BACKUP_DIR}"]
 WORKDIR ${BACKUP_DIR}
-CMD ["/app/run"]
+CMD ["/usr/bin/supervisord"]
