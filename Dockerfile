@@ -18,6 +18,7 @@ RUN curl -sL https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cro
 
 # Add backup script
 COPY assets/* /app/
+RUN chmod +x /app/run
 
 # CLEAN Image
 RUN rm -rf /tmp/* /var/tmp/*
