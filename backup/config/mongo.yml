@@ -1,0 +1,4 @@
+mongo:
+  regex: "mongo"
+  image: "mongo:latest"
+  command: "mongodump --host %ip% --out %target_dir%"
