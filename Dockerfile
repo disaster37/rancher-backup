@@ -18,7 +18,7 @@ RUN curl -sL https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cro
     | tar -x -C /usr/local/bin
 
 # Add backup script
-COPY backup/src/* /app/
+COPY backup/src/ /app/
 COPY backup/config /app/config
 COPY assets/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
