@@ -2,6 +2,7 @@ __author__ = 'disaster'
 
 import re
 import logging
+import os
 from fr.webcenter.backup.Command import Command
 from fr.webcenter.backup.Singleton import Singleton
 
@@ -112,6 +113,11 @@ class Backup(object):
             for env in dump['environments']:
                 environments += " -e '%s'" % env.replace(':', '=')
             dockerCmd = "docker run --rm -v %s:%s %s %s %s" % (dump['target_dir'], dump['target_dir'], environments, dump['image'], dump['command'])
+
+            # Check if folder to receive dump exist, else create it
+            if os.path.isdir(dump['target_dir']) is False:
+                os.makedirs(dump['target_dir'])
+
             commandService.runCmd("docker pull %s" % dump['image'])
 
             commandService.runCmd(dockerCmd)
