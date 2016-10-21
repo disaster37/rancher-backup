@@ -4,7 +4,7 @@ import cattle
 import logging
 from fr.webcenter.backup.Singleton import Singleton
 
-logger = logging.getLogger(__name__)
+logger = logging
 class Rancher(object):
     """
     This class provide helper for Rancher API.

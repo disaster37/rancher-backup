@@ -5,7 +5,7 @@ import logging
 from fr.webcenter.backup.Singleton import Singleton
 
 
-logger = logging.getLogger(__name__)
+logger = logging
 class Command(object):
     """
     Class permit to lauch shell command and control the return code.

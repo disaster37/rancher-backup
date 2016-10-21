@@ -6,7 +6,7 @@ import logging
 from fr.webcenter.backup.Singleton import Singleton
 
 
-logger = logging.getLogger(__name__)
+logger = logging
 class Config(object):
 
     __metaclass__ = Singleton

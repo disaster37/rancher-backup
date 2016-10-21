@@ -5,7 +5,6 @@ import logging
 from fr.webcenter.backup.Command import Command
 from fr.webcenter.backup.Singleton import Singleton
 
-#logger = logging.getLogger(__name__)
 logger = logging
 class Backup(object):
     """
