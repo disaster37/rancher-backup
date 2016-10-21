@@ -108,13 +108,13 @@ if __name__ == '__main__':
         try:
             backupService.initDuplicity(BACKUP_PATH, backend)
         except Exception as e:
-            logger.info("Not backup found (probably the first")
+            logger.info("Not backup found (probably the first)")
             pass
 
 
         # We dump the container if needed
         backupService = Backup()
-        listDump = backupService.searchDump(listServices, listSettings)
+        listDump = backupService.searchDump(BACKUP_PATH, listServices, listSettings)
         backupService.runDump(listDump)
 
         # We run the backup
