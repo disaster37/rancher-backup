@@ -115,7 +115,7 @@ class Backup(object):
             dockerCmd = "docker run --rm -v %s:%s %s %s %s" % (dump['target_dir'], dump['target_dir'], environments, dump['image'], dump['command'])
 
             # Check if folder to receive dump exist, else create it
-            if os.path.isdir(os.path.dirname(dump['target_dir'])) is False:
+            if os.path.isdir(dump['target_dir']) is False:
                 os.makedirs(dump['target_dir'])
                 logger.debug("Create directory '%s'", dump['target_dir'])
             else:

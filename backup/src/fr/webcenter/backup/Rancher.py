@@ -47,7 +47,7 @@ class Rancher(object):
 
                 # We add the stack associated to it
                 service['stack'] = self._client._get(service['links']['environment'])
-                logger.debug("Service %s is on stack", service["name"], service['stack']['name'])
+                logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
 
                 # We add the instances
                 service['instances'] = self._client._get(service['links']['instances'])
