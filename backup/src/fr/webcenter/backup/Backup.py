@@ -5,7 +5,8 @@ import logging
 from fr.webcenter.backup.Command import Command
 from fr.webcenter.backup.Singleton import Singleton
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
+logger = logging
 class Backup(object):
     """
     This class permit to drive dump and backup on remote target
@@ -186,11 +187,11 @@ class Backup(object):
         logger.info(result)
 
         logger.info("Clean old incremental backup if needed")
-        result = commandService.runCmd("ducplicity remove-all-inc-of-but-n-full %s --force --allow-source-mismatch --no-encryption %s" % (incrementalBackupChainKeep, backend))
+        result = commandService.runCmd("duplicity remove-all-inc-of-but-n-full %s --force --allow-source-mismatch --no-encryption %s" % (incrementalBackupChainKeep, backend))
         logger.info(result)
 
         logger.info("Cleanup backup")
-        result = commandService.runCmd("ducplicity  cleanup --force --no-encryption %s" % (backend))
+        result = commandService.runCmd("duplicity  cleanup --force --no-encryption %s" % (backend))
         logger.info(result)
 
 
