@@ -105,7 +105,12 @@ if __name__ == '__main__':
         listServices = rancherService.getServices()
 
         # We init duplicity
-        backupService.initDuplicity(BACKUP_PATH, backend)
+        try:
+            backupService.initDuplicity(BACKUP_PATH, backend)
+        except Exception as e:
+            logger.info("Not backup found (probably the first")
+            pass
+
 
         # We dump the container if needed
         backupService = Backup()
