@@ -2,7 +2,7 @@ import os
 import sys
 from fr.webcenter.backup.Backup import Backup
 from fr.webcenter.backup.Rancher import Rancher
-from src.fr.webcenter.backup.Config import Config
+from fr.webcenter.backup.Config import Config
 import logging
 import traceback
 
