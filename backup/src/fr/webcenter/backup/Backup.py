@@ -65,9 +65,10 @@ class Backup(object):
                     environments = self._replaceMacro("%target_dir", target_dir, environments)
 
                     # Replace environment macro
-                    for envKey, envValue in service['launchConfig']['environment'].iteritems():
-                        command = self._replaceMacro("%env_" + envKey + "%", envValue, command)
-                        environments = self._replaceMacro("%env_" + envKey + "%", envValue, environments)
+                    if 'environment' in service['launchConfig']:
+                        for envKey, envValue in service['launchConfig']['environment'].iteritems():
+                            command = self._replaceMacro("%env_" + envKey + "%", envValue, command)
+                            environments = self._replaceMacro("%env_" + envKey + "%", envValue, environments)
 
                     dump = {}
                     dump['service'] = service
