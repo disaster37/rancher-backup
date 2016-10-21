@@ -46,7 +46,10 @@ class Backup(object):
 
                     #Replace macro ip
                     command = setting['command']
-                    environments = setting['environment']
+                    if 'environment' in setting:
+                        environments = setting['environment']
+                    else:
+                        environments = []
                     ip = None
                     for instance in service['instances']:
                         if instance['state'] == "running":

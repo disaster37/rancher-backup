@@ -96,6 +96,7 @@ class BackupTest(unittest.TestCase):
             }
         ]
 
+        # With environment on settings
         listConfig = {
             'postgres': {
                 'regex': "postgres",
@@ -113,6 +114,47 @@ class BackupTest(unittest.TestCase):
                 'command': 'pg_dump -h 10.0.0.2 -U user -d test -f /backup/stack-test/test/test.dump',
                 'environments': ['PGPASSWORD:pass'],
                 'image': 'postgres:latest'
+            }
+        ]
+
+        self.assertEqual(targetResult, result)
+
+        # Without environment on setting
+        listConfig = {
+            'postgres': {
+                'regex': "postgres",
+                'image': 'postgres:latest',
+                'command': 'pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump',
+            }
+        }
+        result = backupService.searchDump('/backup', listServices, listConfig)
+
+        targetResult = [
+            {
+                'service': listServices[0],
+                'target_dir': '/backup/stack-test/test',
+                'command': 'pg_dump -h 10.0.0.2 -U user -d test -f /backup/stack-test/test/test.dump',
+                'environments': [],
+                'image': 'postgres:latest'
+            }
+        ]
+
+        # Without image on setting
+        listConfig = {
+            'postgres': {
+                'regex': "postgres",
+                'command': 'pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump',
+            }
+        }
+        result = backupService.searchDump('/backup', listServices, listConfig)
+
+        targetResult = [
+            {
+                'service': listServices[0],
+                'target_dir': '/backup/stack-test/test',
+                'command': 'pg_dump -h 10.0.0.2 -U user -d test -f /backup/stack-test/test/test.dump',
+                'environments': [],
+                'image': 'test/postgres:latest'
             }
         ]
 
