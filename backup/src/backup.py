@@ -17,7 +17,7 @@ if __name__ == '__main__':
         loglevel = logging.getLevelName("DEBUG")
     else:
         loglevel = logging.getLevelName("INFO")
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger()
     logger.setLevel(loglevel)
 
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
