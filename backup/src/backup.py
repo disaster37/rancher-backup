@@ -7,9 +7,24 @@ import logging
 import traceback
 
 
-logger = logging.getLogger(__name__)
+
 
 if __name__ == '__main__':
+
+    # Init logger
+    # We init logger
+    if os.getenv('DEBUG') is not None and os.getenv('DEBUG') == "true":
+        loglevel = logging.getLevelName("DEBUG")
+    else:
+        loglevel = logging.getLevelName("INFO")
+    logger = logging.getLogger(__name__)
+    logger.setLevel(loglevel)
+
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(loglevel)
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
 
     BACKUP_PATH = os.getenv('BACKUP_PATH', "/backup")
     TARGET_PATH = os.getenv('TARGET_PATH', "/backup")
