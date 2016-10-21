@@ -4,6 +4,7 @@ from fr.webcenter.backup.Backup import Backup
 from fr.webcenter.backup.Rancher import Rancher
 from fr.webcenter.backup.Config import Config
 import logging
+from logging.handlers import TimedRotatingFileHandler
 import traceback
 
 
@@ -25,6 +26,15 @@ if __name__ == '__main__':
     console_handler.setLevel(loglevel)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
+    file_handler = TimedRotatingFileHandler(
+        '/var/log/backup/backup.log',
+        when='d',
+        interval=1,
+        backupCount=5
+    )
+    file_handler.setLevel(loglevel)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
     BACKUP_PATH = os.getenv('BACKUP_PATH', "/backup")
     TARGET_PATH = os.getenv('TARGET_PATH', "/backup")

@@ -21,6 +21,7 @@ RUN curl -sL https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cro
 COPY backup/src/ /app/
 COPY backup/config /app/config
 COPY assets/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN mkdir -p /var/log/backup
 
 # CLEAN Image
 RUN rm -rf /tmp/* /var/tmp/*

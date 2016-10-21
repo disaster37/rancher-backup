@@ -117,6 +117,9 @@ class Backup(object):
             # Check if folder to receive dump exist, else create it
             if os.path.isdir(os.path.dirname(dump['target_dir'])) is False:
                 os.makedirs(dump['target_dir'])
+                logger.debug("Create directory '%s'", dump['target_dir'])
+            else:
+                logger.debug("Directory '%s' already exist", dump['target_dir'])
 
             commandService.runCmd("docker pull %s" % dump['image'])
 
