@@ -108,7 +108,7 @@ if __name__ == '__main__':
         try:
             backupService.initDuplicity(BACKUP_PATH, backend)
         except Exception as e:
-            logger.info("No backup found (probably the first)")
+            logger.info("No backup found (probably the first) or already initialized")
             pass
 
 
