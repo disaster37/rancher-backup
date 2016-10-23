@@ -56,7 +56,8 @@ Then, add your new entry (sample with MySQL):
 mysql:
   regex: "mysql"
   image: "mysql:latest"
-  command: "mysqldump -h %ip% -u %env_MYSQL_USER% %env_MYSQL_DATABASE% > %target_dir%/%env_MYSQL_DATABASE%.dump"
+  commands:
+    - "mysqldump -h %ip% -u %env_MYSQL_USER% %env_MYSQL_DATABASE% > %target_dir%/%env_MYSQL_DATABASE%.dump"
   environment:
     - MYSQL_PWD:%env_MYSQL_PASSWORD%
 ```
@@ -64,7 +65,7 @@ mysql:
 Few explanation:
 - `regex`: It's the regex to discover service witch must be dumped. This regex is applied to image docker used in service.
 - `image`: It's the docker image to use to run the dump (generaly the latest tag). If you not add image entry, it use the service docker image.
-- `command`: It's the command to launch on container to perform the dump
+- `commands`: It's the list of commands to launch on container to perform the dump
 - `environment`: It's the list of environment variables you need to perform the dump
 
 There are few macro you can use in command and in environment section:
