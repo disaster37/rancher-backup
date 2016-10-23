@@ -46,7 +46,7 @@ class Backup(object):
                     logger.info("Found '%s/%s' to do dumping" % (service['stack']['name'], service['name']))
 
                     #Replace macro ip
-                    command = setting['command']
+                    commands = setting['commands']
                     if 'environment' in setting:
                         environments = setting['environment']
                     else:
@@ -57,29 +57,31 @@ class Backup(object):
                             ip = instance['primaryIpAddress']
                             logger.debug("Found IP %s", ip)
                             break
-                    command = self._replaceMacro('%ip%', ip, command)
+                    commands = self._replaceMacro('%ip%', ip, commands)
                     environments = self._replaceMacro("%ip", ip, environments)
 
                     # Replace target_dir macro
                     target_dir = backupPath + "/" + service['stack']['name'] + "/" + service['name']
-                    command = self._replaceMacro('%target_dir%', target_dir, command)
+                    commands = self._replaceMacro('%target_dir%', target_dir, commands)
                     environments = self._replaceMacro("%target_dir", target_dir, environments)
 
                     # Replace environment macro
                     if 'environment' in service['launchConfig']:
                         for envKey, envValue in service['launchConfig']['environment'].iteritems():
-                            command = self._replaceMacro("%env_" + envKey + "%", envValue, command)
+                            commands = self._replaceMacro("%env_" + envKey + "%", envValue, commands)
                             environments = self._replaceMacro("%env_" + envKey + "%", envValue, environments)
 
                     dump = {}
                     dump['service'] = service
                     dump['target_dir'] = target_dir
-                    dump['command'] = command
+                    dump['commands'] = commands
                     dump["environments"] = environments
                     if "image" in setting:
                         dump['image'] = setting['image']
                     else:
                         dump['image'] = service['launchConfig']['imageUuid']
+                    if "entrypoint" in setting:
+                        dump['entrypoint'] = setting['entrypoint']
 
 
 
@@ -112,7 +114,12 @@ class Backup(object):
             environments = ""
             for env in dump['environments']:
                 environments += " -e '%s'" % env.replace(':', '=')
-            dockerCmd = "docker run --rm -v %s:%s %s %s %s" % (dump['target_dir'], dump['target_dir'], environments, dump['image'], dump['command'])
+
+
+            if 'entrypoint' in dump:
+                entrypoint = dump['entrypoint']
+            else:
+                entrypoint = ''
 
             # Check if folder to receive dump exist, else create it
             if os.path.isdir(dump['target_dir']) is False:
@@ -123,7 +130,9 @@ class Backup(object):
 
             commandService.runCmd("docker pull %s" % dump['image'])
 
-            commandService.runCmd(dockerCmd)
+            for command in dump['commands']:
+                dockerCmd = "docker run --rm --entrypoint '%s' -v %s:%s %s %s %s" % (entrypoint, dump['target_dir'], dump['target_dir'], environments, dump['image'], command)
+                commandService.runCmd(dockerCmd)
             logger.info("Dump %s/%s is finished" % (dump['service']['stack']['name'], dump['service']['name']))
 
 

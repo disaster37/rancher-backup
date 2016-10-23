@@ -9,7 +9,7 @@ from fr.webcenter.backup.Command import Command
 def fakeInitDuplicity(cmd):
     return cmd
 
-class BackupTest(unittest.TestCase):
+class test_BackupTest(unittest.TestCase):
 
     def test_replaceMacro(self):
         backupService = Backup()
@@ -101,7 +101,11 @@ class BackupTest(unittest.TestCase):
             'postgres': {
                 'regex': "postgres",
                 'image': 'postgres:latest',
-                'command': 'pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump',
+                'commands': [
+                    'pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump',
+                    'fake_cmd2 -h %ip% -U %env_POSTGRES_USER%'
+                ],
+                'entrypoint': "sh -c",
                 'environment': ['PGPASSWORD:%env_POSTGRES_PASSWORD%']
             }
         }
@@ -111,7 +115,11 @@ class BackupTest(unittest.TestCase):
             {
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
-                'command': 'pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump',
+                'commands': [
+                    'pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump',
+                    'fake_cmd2 -h 10.0.0.2 -U user'
+                ],
+                'entrypoint': "sh -c",
                 'environments': ['PGPASSWORD:pass'],
                 'image': 'postgres:latest'
             }
@@ -124,7 +132,7 @@ class BackupTest(unittest.TestCase):
             'postgres': {
                 'regex': "postgres",
                 'image': 'postgres:latest',
-                'command': 'pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump',
+                'commands': ['pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump'],
             }
         }
         result = backupService.searchDump('/tmp/backup', listServices, listConfig)
@@ -133,7 +141,7 @@ class BackupTest(unittest.TestCase):
             {
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
-                'command': 'pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump',
+                'commands': ['pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump'],
                 'environments': [],
                 'image': 'postgres:latest'
             }
@@ -143,7 +151,7 @@ class BackupTest(unittest.TestCase):
         listConfig = {
             'postgres': {
                 'regex': "postgres",
-                'command': 'pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump',
+                'commands': ['pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump'],
             }
         }
         result = backupService.searchDump('/tmp/backup', listServices, listConfig)
@@ -152,7 +160,7 @@ class BackupTest(unittest.TestCase):
             {
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
-                'command': 'pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump',
+                'commands': ['pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump'],
                 'environments': [],
                 'image': 'test/postgres:latest'
             }
@@ -224,7 +232,8 @@ class BackupTest(unittest.TestCase):
             {
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
-                'command': 'pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump',
+                'commands': ['pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump'],
+                'entrypoint': "sh -c",
                 'environments': ['PGPASSWORD:pass'],
                 'image': 'postgres:latest'
             }
@@ -233,4 +242,8 @@ class BackupTest(unittest.TestCase):
         backupService.runDump(listDump)
         print("Nb call %s" % mock_runCmd.call_args_list)
         mock_runCmd.assert_any_call(mock.ANY, 'docker pull postgres:latest')
-        mock_runCmd.assert_any_call(mock.ANY, "docker run --rm -v /tmp/backup/stack-test/test:/tmp/backup/stack-test/test  -e 'PGPASSWORD=pass' postgres:latest pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump")
+        mock_runCmd.assert_any_call(mock.ANY, "docker run --rm --entrypoint 'sh -c' -v /tmp/backup/stack-test/test:/tmp/backup/stack-test/test  -e 'PGPASSWORD=pass' postgres:latest pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump")
+
+
+if __name__ == '__main__':
+    unittest.main()
