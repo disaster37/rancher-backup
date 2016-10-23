@@ -1,0 +1,4 @@
+elasticsearch:
+  regex: "elasticsearch"
+  image: "taskrabbit/elasticsearch-dump:latest"
+  command: "sh -c 'elasticdump --input=http://%ip:9200/ --output=%target_dir%/dump_mapping.json --type=mapping && elasticdump --input=http://%ip:9200/ --output=%target_dir%/dump_data.json --type=data'"

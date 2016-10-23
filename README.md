@@ -15,20 +15,24 @@ You are welcome to contribute on github to extend the supported service.
 
 No extra need, use dump tools utilities to do remote dump.
 
-- `MySQL`: the docker image must have `mysql` on name
-- `MariaDB`: the docker image must have `mariadb` on name
-- `PostgreSQL`: the docker image must have `postgres` on name
-- `MongoDB`: the docker image must have `mongo` on name
+- `MySQL`: the docker image must have `mysql` on name. Use `mysqldump` to perform the dump.
+- `MariaDB`: the docker image must have `mariadb` on name. Use `mysqldump` to perform the dump.
+- `PostgreSQL`: the docker image must have `postgres` on name. Use `pgdump` to perform the dump.
+- `MongoDB`: the docker image must have `mongo` on name. Use `mongodump` to perform the dump.
+- `Elasticsearch`: the docker image must have `elasticsearch` on name. Use `elasticdump` to perform the dump.
 
 ## Distributed NoSQL databases
 
 Need to have shared volume (like glusterfs, S3, Ceph, etc.) between each database nodes and the backup service.
 To to dump, we use tools utilities to ask each nodes perform a local dump (on shared volume) and we mount this shared volume on backup service to perform the remote backup.
 
-For example, if you have 3 Elasticsearch nodes on 3 hosts, you must to have sharded storage on each hosts (`/mnt/elasticsearch`) witch is mounted on each nodes (`/dump`).
-Then, you need to mount the shared storage on backup service (`/mnt/elasticsearch:/backup/elasticsearch`).
-When we detect Elasticsearch service, we send command to Elasticsearch to ask it to perform a dump of each nodes on `/dump`, ans next we perform a backup with duplicity of `/backup folder`.
+For example, if you have 3 Cassandra nodes on 3 hosts, you must to have sharded storage on each hosts (`/mnt/cassandra`) witch is mounted on each nodes (`/dump`).
+Then, you need to mount the shared storage on backup service (`/mnt/cassandra:/backup/cassandra`).
+When we detect Cassandra service, we send command to Cassandra to ask it to perform a dump of each nodes on `/dump`, ans next we perform a backup with duplicity of `/backup` folder.
 
+
+
+## Disable dump on specific service
 
 If you should to not dump a particular service witch is supported, you can add label on service `backup.disable=true`
 
