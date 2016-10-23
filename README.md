@@ -9,10 +9,25 @@ Next, all the contains of `BACKUP_PATH` (default is /backup) is backuped on remo
 
 You are welcome to contribute on github to extend the supported service.
 
-## Database compatibility
+# Compatibilities
+
+## Standard databases compatibilities
+
+No extra need, use dump tools utilities to do remote dump.
+
 - `MySQL`: the docker image must have `mysql` on name
+- `MariaDB`: the docker image must have `mariadb` on name
 - `PostgreSQL`: the docker image must have `postgres` on name
 - `MongoDB`: the docker image must have `mongo` on name
+
+## Distributed NoSQL databases
+
+Need to have shared volume (like glusterfs, S3, Ceph, etc.) between each database nodes and the backup service.
+To to dump, we use tools utilities to ask each nodes perform a local dump (on shared volume) and we mount this shared volume on backup service to perform the remote backup.
+
+For example, if you have 3 Elasticsearch nodes on 3 hosts, you must to have sharded storage on each hosts (`/mnt/elasticsearch`) witch is mounted on each nodes (`/dump`).
+Then, you need to mount the shared storage on backup service (`/mnt/elasticsearch:/backup/elasticsearch`).
+When we detect Elasticsearch service, we send command to Elasticsearch to ask it to perform a dump of each nodes on `/dump`, ans next we perform a backup with duplicity of `/backup folder`.
 
 
 If you should to not dump a particular service witch is supported, you can add label on service `backup.disable=true`
@@ -21,7 +36,6 @@ If you should to not dump a particular service witch is supported, you can add l
 The following options permit to set the backup policy :
 - `CRON_SCHEDULE`: when you should start backup (incremental if full is not needed). For example, to start backup each day set `0 0 0 * * *`
 - `BACKEND`: this is the target URL to externalize the backup. For example, to use FTP as external backup set `ftp://login@my-ftp.com` and add environment variable `FTP_PASSWORD`. For Amazon S3, set `s3://host[:port]/bucket_name[/prefix]`. Read the ducplicity man for [all supported backend](http://duplicity.nongnu.org/duplicity.1.html#sect7). There are no default value.
-- `BACKUP_PATH`: the path to backup with duplicity
 - `TARGET_PATH`: The path were store backup on local and remote. The default value is `/backup`.
 - `BK_FULL_FREQ`: The frequency when you should make a full backup. For example, if you should make a full backup each 7 days, set `7D`. The default value is `7D`.
 - `BK_KEEP_FULL`: How many full backup you should to keep. For example, to keep 3 full backup set `3`. The default value is `3`.

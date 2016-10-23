@@ -36,7 +36,7 @@ if __name__ == '__main__':
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    BACKUP_PATH = os.getenv('BACKUP_PATH', "/backup")
+    BACKUP_PATH = '/backup'
     TARGET_PATH = os.getenv('TARGET_PATH', "/backup")
     BK_FULL_FREQ = os.getenv('BK_FULL_FREQ', "7D")
     BK_KEEP_FULL = os.getenv('BK_KEEP_FULL', "3")
