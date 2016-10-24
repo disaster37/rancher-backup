@@ -42,6 +42,8 @@ if __name__ == '__main__':
     BK_KEEP_FULL = os.getenv('BK_KEEP_FULL', "3")
     BK_KEEP_FULL_CHAIN = os.getenv('BK_KEEP_FULL_CHAIN', "1")
     VOLUME_SIZE = os.getenv('VOLUME_SIZE', "25")
+    DISABLE_DUMP = os.getenv('DISABLE_DUMP', "false")
+    DISABLE_DUMP_RANCHER = os.getenv('DISABLE_DUMP_RANCHER', "false")
 
     if os.getenv("RANCHER_API_URL") is None or os.getenv("RANCHER_API_URL") == "":
         logger.error("RANCHER_API_URL must be provided")
@@ -73,6 +75,15 @@ if __name__ == '__main__':
     if VOLUME_SIZE is None or VOLUME_SIZE == "":
         logger.error("VOLUME_SIZE must be provided")
         sys.exit(1)
+    if DISABLE_DUMP is None or DISABLE_DUMP == "":
+        logger.error("DISABLE_DUMP must be provided")
+        sys.exit(1)
+    if DISABLE_DUMP_RANCHER is None or DISABLE_DUMP_RANCHER == "":
+        logger.error("DISABLE_DUMP_RANCHER must be provided")
+        sys.exit(1)
+
+
+
 
 
 
@@ -111,8 +122,7 @@ if __name__ == '__main__':
         # Load settings
         listSettings = configService.getConfig()
 
-        # Get all services (potential dump)
-        listServices = rancherService.getServices()
+
 
         # We init duplicity
         try:
@@ -123,9 +133,16 @@ if __name__ == '__main__':
 
 
         # We dump the container if needed
-        backupService = Backup()
-        listDump = backupService.searchDump(BACKUP_PATH, listServices, listSettings)
-        backupService.runDump(listDump)
+        # Get all services (potential dump)
+        if DISABLE_DUMP != "true":
+            listServices = rancherService.getServices()
+            listDump = backupService.searchDump(BACKUP_PATH, listServices, listSettings)
+            backupService.runDump(listDump)
+
+        # We dump the rancher settings
+        if DISABLE_DUMP_RANCHER != "true":
+            listStacks = rancherService.getStacks()
+            backupService.dumpStacksSettings(BACKUP_PATH + '/rancher', listStacks)
 
         # We run the backup
         backupService.runDuplicity(BACKUP_PATH, backend, BK_FULL_FREQ, BK_KEEP_FULL, BK_KEEP_FULL_CHAIN, VOLUME_SIZE)

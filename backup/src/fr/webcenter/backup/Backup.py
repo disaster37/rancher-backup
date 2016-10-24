@@ -216,6 +216,44 @@ class Backup(object):
         logger.info(result)
 
 
+    def dumpStacksSettings(self,backupPath, listEnvironments):
+        """
+        Permit to write the stack setting in docker-compose file and rancher-compose file.
+        :param backupPath: the backup path where store the stack setting extraction
+        :param listEnvironments: the list of stack
+        :type backupPath: str
+        :type listEnvironments: list
+        """
+
+        if backupPath is None or backupPath == "":
+            raise KeyError("backupPath must be provided")
+        if listEnvironments is None or isinstance(listEnvironments, list) is False:
+            raise KeyError("listEnvironments must be provided")
+
+        for environment in listEnvironments:
+
+            targetDir = "%s/%s" % (backupPath, environment['name'])
+            logger.info("Save the Rancher setting for stack %s in %s", environment['name'], targetDir)
+
+            if os.path.isdir(targetDir) is False:
+                os.makedirs(targetDir)
+                logger.debug("Create directory '%s'", targetDir)
+            else:
+                logger.debug("Directory '%s' already exist", targetDir)
+
+            # Save docker-compose
+            fp = open(targetDir + '/docker-compose.yml', 'w')
+            fp.write(environment['settings']['dockerComposeConfig'])
+            fp.close()
+
+            # Save rancher-compose
+            fp = open(targetDir + '/rancher-compose.yml', 'w')
+            fp.write(environment['settings']['rancherComposeConfig'])
+            fp.close()
+
+
+
+
     def _replaceMacro(self, macro, value, data):
         """
         Permit to replace macro by value on data.

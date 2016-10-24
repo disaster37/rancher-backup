@@ -2,6 +2,11 @@ __author__ = 'disaster'
 
 import unittest
 import mock
+import os
+import io
+from mock import mock_open
+import fr.webcenter.backup.Backup
+import __builtin__
 from fr.webcenter.backup.Backup import Backup
 from fr.webcenter.backup.Command import Command
 
@@ -9,7 +14,7 @@ from fr.webcenter.backup.Command import Command
 def fakeInitDuplicity(cmd):
     return cmd
 
-class test_BackupTest(unittest.TestCase):
+class BackupTest(unittest.TestCase):
 
     def test_replaceMacro(self):
         backupService = Backup()
@@ -373,11 +378,237 @@ class test_BackupTest(unittest.TestCase):
         ]
 
         backupService.runDump(listDump)
-        print("Nb call %s" % mock_runCmd.call_args_list)
+        #print("Nb call %s" % mock_runCmd.call_args_list)
         mock_runCmd.assert_any_call(mock.ANY, 'docker pull postgres:latest')
         mock_runCmd.assert_any_call(mock.ANY, "docker run --rm --entrypoint='sh -c' -v /tmp/backup/stack-test/test:/tmp/backup/stack-test/test  -e 'PGPASSWORD=pass' postgres:latest pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump")
         mock_runCmd.assert_any_call(mock.ANY, 'docker pull mysql:latest')
         mock_runCmd.assert_any_call(mock.ANY, "docker run --rm  -v /tmp/backup/stack-test/test2:/tmp/backup/stack-test/test2  -e 'MYSQLPASSWORD=pass' mysql:latest mysqldump -h 10.1.0.2 -U user -d test -f /tmp/backup/stack-test/test2/test.dump")
+
+
+    @mock.patch('__builtin__.open', new_callable=mock.mock_open(), create=True)
+    @mock.patch.object(os, 'makedirs', autospec=True)
+    def testdumpStacksSettings(self, mock_makedirs, mock_file):
+        backupService = Backup()
+
+        listStack = [
+            {
+                "id": "1e44",
+                "type": "environment",
+                "links": {
+                    "self": "/v1/projects/1a203/environments/1e44",
+                    "account": "/v1/projects/1a203/environments/1e44/account",
+                    "services": "/v1/projects/1a203/environments/1e44/services",
+                    "composeConfig": "/v1/projects/1a203/environments/1e44/composeconfig",
+                },
+                "actions": {
+                    "upgrade": "/v1/projects/1a203/environments/1e44/?action=upgrade",
+                    "update": "/v1/projects/1a203/environments/1e44/?action=update",
+                    "remove": "/v1/projects/1a203/environments/1e44/?action=remove",
+                    "addoutputs": "/v1/projects/1a203/environments/1e44/?action=addoutputs",
+                    "activateservices": "/v1/projects/1a203/environments/1e44/?action=activateservices",
+                    "deactivateservices": "/v1/projects/1a203/environments/1e44/?action=deactivateservices",
+                    "exportconfig": "/v1/projects/1a203/environments/1e44/?action=exportconfig",
+                },
+                "name": "Default",
+                "state": "active",
+                "accountId": "1a203",
+                "created": "2016-09-14T07:41:09Z",
+                "createdTS": 1473838869000,
+                "description": None,
+                "dockerCompose": None,
+                "environment": None,
+                "externalId": None,
+                "healthState": "healthy",
+                "kind": "environment",
+                "outputs": None,
+                "previousEnvironment": None,
+                "previousExternalId": None,
+                "rancherCompose": None,
+                "removed": None,
+                "startOnCreate": None,
+                "transitioning": "no",
+                "transitioningMessage": None,
+                "transitioningProgress": None,
+                "uuid": "e2c02a5f-5585-4ee7-8bdb-3672e874de10",
+                'settings': {
+                    "id": None,
+                    "type": "composeConfig",
+                    "links": {},
+                    "actions": {},
+                    "dockerComposeConfig": "test:\r\n  environment:\r\n    BACKEND: ftp://test\r\n    FTP_PASSWORD: test\r\n    CRON_SCHEDULE: 0 0 * * *\r\n    BK_FULL_FREQ: 1D\r\n    BK_KEEP_FULL: '7'\r\n    BK_KEEP_FULL_CHAIN: '1'\r\n    VOLUME_SIZE: '1000'\r\n    RANCHER_API_URL: https://test/v1/projects/1a203\r\n    RANCHER_API_KEY: test\r\n    RANCHER_API_SECRET: test\r\n    DEBUG: 'false'\r\n  labels:\r\n    io.rancher.container.pull_image: always\r\n    backup.disable: 'true'\r\n  tty: true\r\n  image: webcenter/rancher-backup:develop\r\n  privileged: true\r\n  stdin_open: true\r\nmariadb:\r\n  environment:\r\n    MYSQL_ROOT_PASSWORD: root-pass\r\n    MYSQL_DATABASE: teampass\r\n    MYSQL_PASSWORD: user-pass\r\n    MYSQL_USER: teampass\r\n  labels:\r\n    io.rancher.container.pull_image: always\r\n  tty: true\r\n  image: mariadb\r\n  stdin_open: true\r\npostgres:\r\n  environment:\r\n    PGDATA: /var/lib/postgresql/data/pgdata\r\n    POSTGRES_DB: alfresco\r\n    POSTGRES_USER: user\r\n    POSTGRES_PASSWORD: pass\r\n  labels:\r\n    io.rancher.container.pull_image: always\r\n  tty: true\r\n  image: postgres:9.4\r\n  volumes:\r\n  - /data/postgres:/var/lib/postgresql/data/pgdata\r\n  stdin_open: true\r\nmysql:\r\n  environment:\r\n    MYSQL_ROOT_PASSWORD: root-pass\r\n    MYSQL_DATABASE: teampass\r\n    MYSQL_PASSWORD: user-pass\r\n    MYSQL_USER: teampass\r\n  labels:\r\n    io.rancher.container.pull_image: always\r\n  tty: true\r\n  image: mysql/mysql-server:5.5\r\n  stdin_open: true\r\n",
+                    "rancherComposeConfig": "test:\r\n  scale: 1\r\nmariadb:\r\n  scale: 1\r\npostgres:\r\n  scale: 1\r\nmysql:\r\n  scale: 1\r\n",
+                }
+
+            },
+            {
+                "id": "1e45",
+                "type": "environment",
+                "links": {
+                    "self": "/v1/projects/1a203/environments/1e45",
+                    "account": "/v1/projects/1a203/environments/1e45/account",
+                    "services": "/v1/projects/1a203/environments/1e45/services",
+                    "composeConfig": "/v1/projects/1a203/environments/1e45/composeconfig",
+                },
+                "actions": {
+                    "upgrade": "/v1/projects/1a203/environments/1e45/?action=upgrade",
+                    "update": "/v1/projects/1a203/environments/1e45/?action=update",
+                    "remove": "/v1/projects/1a203/environments/1e45/?action=remove",
+                    "addoutputs": "/v1/projects/1a203/environments/1e45/?action=addoutputs",
+                    "activateservices": "/v1/projects/1a203/environments/1e45/?action=activateservices",
+                    "deactivateservices": "/v1/projects/1a203/environments/1e45/?action=deactivateservices",
+                    "exportconfig": "/v1/projects/1a203/environments/1e45/?action=exportconfig",
+                },
+                "name": "seedbox",
+                "state": "active",
+                "accountId": "1a203",
+                "created": "2016-09-14T07:43:01Z",
+                "createdTS": 1473838981000,
+                "description": None,
+                "dockerCompose": "plex:\n  ports:\n  - 32400:32400/tcp\n  environment:\n    PLEX_USERNAME: user\n    PLEX_PASSWORD: pass\n    PLEX_DISABLE_SECURITY: '0'\n    SKIP_CHOWN_CONFIG: 'false'\n    PLEX_ALLOWED_NETWORKS: 10.0.0.0/8\n  labels:\n    io.rancher.container.pull_image: always\n  tty: true\n  hostname: home\n  image: timhaak/plex\n  volumes:\n  - /mnt/nas:/data\n  - /data/seedbox/plex:/config\n  stdin_open: true",
+                "environment": None,
+                "externalId": "",
+                "healthState": "healthy",
+                "kind": "environment",
+                "outputs": None,
+                "previousEnvironment": None,
+                "previousExternalId": None,
+                "rancherCompose": "plex:\n  scale: 1",
+                "removed": None,
+                "startOnCreate": True,
+                "transitioning": "no",
+                "transitioningMessage": None,
+                "transitioningProgress": None,
+                "uuid": "1a5c08a4-c851-4651-b516-e950982d617b",
+                'settings': {
+                    "id": None,
+                    "type": "composeConfig",
+                    "links": {},
+                    "actions": {},
+                    "dockerComposeConfig": "plex:\r\n  ports:\r\n  - 32400:32400/tcp\r\n  environment:\r\n    PLEX_ALLOWED_NETWORKS: 10.0.0.0/8\r\n    PLEX_DISABLE_SECURITY: '0'\r\n    PLEX_PASSWORD: test\r\n    PLEX_USERNAME: test\r\n    SKIP_CHOWN_CONFIG: 'false'\r\n  labels:\r\n    io.rancher.container.pull_image: always\r\n  tty: true\r\n  hostname: home\r\n  image: timhaak/plex\r\n  volumes:\r\n  - /mnt/nas:/data\r\n  - /data/seedbox/plex:/config\r\n  stdin_open: true\r\n",
+                    "rancherComposeConfig": "plex:\r\n  scale: 1\r\n",
+                }
+            },
+            {
+                "id": "1e48",
+                "type": "environment",
+                "links": {
+                    "self": "/v1/projects/1a203/environments/1e48",
+                    "account": "/v1/projects/1a203/environments/1e48/account",
+                    "services": "/v1/projects/1a203/environments/1e48/services",
+                    "composeConfig": "/v1/projects/1a203/environments/1e48/composeconfig",
+                },
+                "actions": {
+                    "upgrade": "/v1/projects/1a203/environments/1e48/?action=upgrade",
+                    "update": "/v1/projects/1a203/environments/1e48/?action=update",
+                    "remove": "/v1/projects/1a203/environments/1e48/?action=remove",
+                    "addoutputs": "/v1/projects/1a203/environments/1e48/?action=addoutputs",
+                    "activateservices": "/v1/projects/1a203/environments/1e48/?action=activateservices",
+                    "deactivateservices": "/v1/projects/1a203/environments/1e48/?action=deactivateservices",
+                    "exportconfig": "/v1/projects/1a203/environments/1e48/?action=exportconfig",
+                },
+                "name": "test",
+                "state": "active",
+                "accountId": "1a203",
+                "created": "2016-10-21T09:21:46Z",
+                "createdTS": 1477041706000,
+                "description": None,
+                "dockerCompose": None,
+                "environment": None,
+                "externalId": "",
+                "healthState": "healthy",
+                "kind": "environment",
+                "outputs": None,
+                "previousEnvironment": None,
+                "previousExternalId": None,
+                "rancherCompose": None,
+                "removed": None,
+                "startOnCreate": True,
+                "transitioning": "no",
+                "transitioningMessage": None,
+                "transitioningProgress": None,
+                "uuid": "0fec46ea-99d5-494d-b430-eac97beb419f",
+                "settings": {
+                    "id": None,
+                    "type": "composeConfig",
+                    "links": {},
+                    "actions": {},
+                    "dockerComposeConfig": "elasticsearch:\r\n  labels:\r\n    io.rancher.container.pull_image: always\r\n  tty: true\r\n  image: elasticsearch\r\n  stdin_open: true\r\nmongo:\r\n  labels:\r\n    io.rancher.container.pull_image: always\r\n  tty: true\r\n  command:\r\n  - mongod\r\n  - --smallfiles\r\n  - --oplogSize\r\n  - '128'\r\n  image: mongo\r\n  stdin_open: true\r\n",
+                    "rancherComposeConfig": "elasticsearch:\r\n  scale: 1\r\nmongo:\r\n  scale: 1\r\n",
+                }
+
+            },
+            {
+                "id": "1e49",
+                "type": "environment",
+                "links": {
+                    "self": "/v1/projects/1a203/environments/1e49",
+                    "account": "/v1/projects/1a203/environments/1e49/account",
+                    "services": "/v1/projects/1a203/environments/1e49/services",
+                    "composeConfig": "/v1/projects/1a203/environments/1e49/composeconfig",
+                },
+                "actions": {
+                    "upgrade": "/v1/projects/1a203/environments/1e49/?action=upgrade",
+                    "update": "/v1/projects/1a203/environments/1e49/?action=update",
+                    "remove": "/v1/projects/1a203/environments/1e49/?action=remove",
+                    "addoutputs": "/v1/projects/1a203/environments/1e49/?action=addoutputs",
+                    "activateservices": "/v1/projects/1a203/environments/1e49/?action=activateservices",
+                    "deactivateservices": "/v1/projects/1a203/environments/1e49/?action=deactivateservices",
+                    "exportconfig": "/v1/projects/1a203/environments/1e49/?action=exportconfig",
+                },
+                "name": "lb",
+                "state": "active",
+                "accountId": "1a203",
+                "created": "2016-10-24T09:55:44Z",
+                "createdTS": 1477302944000,
+                "description": None,
+                "dockerCompose": None,
+                "environment": None,
+                "externalId": "",
+                "healthState": "healthy",
+                "kind": "environment",
+                "outputs": None,
+                "previousEnvironment": None,
+                "previousExternalId": None,
+                "rancherCompose": None,
+                "removed": None,
+                "startOnCreate": True,
+                "transitioning": "no",
+                "transitioningMessage": None,
+                "transitioningProgress": None,
+                "uuid": "7ac2a47f-b084-4002-a2fb-919a1e738bda",
+                "settings": {
+                    "id": None,
+                    "type": "composeConfig",
+                    "links": {},
+                    "actions": {},
+                    "dockerComposeConfig": "{}\r\n",
+                    "rancherComposeConfig": "{}\r\n",
+                }
+            },
+        ]
+
+        backupService.dumpStacksSettings('/backup', listStack)
+
+        #print("Call makedirs: %s", mock_makedirs.call_args_list)
+        #print("Call open: %s", mock_file.call_args_list)
+
+        mock_makedirs.assert_any_call('/backup/Default')
+        mock_makedirs.assert_any_call('/backup/seedbox')
+        mock_makedirs.assert_any_call('/backup/test')
+        mock_makedirs.assert_any_call('/backup/lb')
+
+        mock_file.assert_any_call('/backup/Default/docker-compose.yml', 'w')
+        mock_file.assert_any_call('/backup/Default/rancher-compose.yml', 'w')
+        mock_file.assert_any_call('/backup/seedbox/docker-compose.yml', 'w')
+        mock_file.assert_any_call('/backup/seedbox/rancher-compose.yml', 'w')
+        mock_file.assert_any_call('/backup/test/docker-compose.yml', 'w')
+        mock_file.assert_any_call('/backup/test/rancher-compose.yml', 'w')
+        mock_file.assert_any_call('/backup/lb/docker-compose.yml', 'w')
+        mock_file.assert_any_call('/backup/lb/rancher-compose.yml', 'w')
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -61,3 +61,19 @@ class Rancher(object):
 
 
         return targetListServices
+
+
+    def getStacks(self):
+        """
+        Permit to get all stack on Rancher environment
+        :return list: the list of Rancher stack
+        """
+
+        listEnvironments = self._client.list('environment')
+        for environment in listEnvironments:
+            logger.debug("Grab setting for stack %s", environment['name'])
+            environment['settings'] = self._client._get(environment['actions']['exportconfig'])
+
+        return listEnvironments
+
+
