@@ -117,7 +117,7 @@ class Backup(object):
 
 
             if 'entrypoint' in dump:
-                entrypoint = dump['entrypoint']
+                entrypoint = "--entrypoint='%s'" % dump['entrypoint']
             else:
                 entrypoint = ''
 
@@ -131,7 +131,7 @@ class Backup(object):
             commandService.runCmd("docker pull %s" % dump['image'])
 
             for command in dump['commands']:
-                dockerCmd = "docker run --rm --entrypoint '%s' -v %s:%s %s %s %s" % (entrypoint, dump['target_dir'], dump['target_dir'], environments, dump['image'], command)
+                dockerCmd = "docker run --rm %s -v %s:%s %s %s %s" % (entrypoint, dump['target_dir'], dump['target_dir'], environments, dump['image'], command)
                 commandService.runCmd(dockerCmd)
             logger.info("Dump %s/%s is finished" % (dump['service']['stack']['name'], dump['service']['name']))
 

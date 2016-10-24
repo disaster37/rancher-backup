@@ -93,6 +93,58 @@ class test_BackupTest(unittest.TestCase):
                     }
 
                 ],
+            },
+            {
+                'name': 'test2',
+                'state': 'active',
+                'launchConfig': {
+                    'imageUuid': 'test/mysql:latest',
+                    'environment': {
+                        'MYSQL_USER': 'user',
+                        'MYSQL_DB': 'test',
+                        'MYSQL_PASSWORD': 'pass'
+                    }
+                },
+                'links': {
+                    'environment': 'https://fake/environment',
+                    'instances': 'https://fake/instances',
+                },
+                'stack': {
+                    'name': 'stack-test'
+                },
+                'instances': [
+                    {
+                        'state': 'disabled',
+                        'primaryIpAddress': '10.1.0.1',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.1.0.2',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.1.0.3',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    }
+
+                ],
             }
         ]
 
@@ -107,6 +159,15 @@ class test_BackupTest(unittest.TestCase):
                 ],
                 'entrypoint': "sh -c",
                 'environment': ['PGPASSWORD:%env_POSTGRES_PASSWORD%']
+            },
+            'mysql': {
+                'regex': "mysql",
+                'image': 'mysql:latest',
+                'commands': [
+                    'mysqldump -h %ip% -U %env_MYSQL_USER% -d %env_MYSQL_DB% -f %target_dir%/%env_MYSQL_DB%.dump',
+                    'fake_cmd2 -h %ip% -U %env_MYSQL_USER%'
+                ],
+                'environment': ['MYSQLPASSWORD:%env_MYSQL_PASSWORD%']
             }
         }
         result = backupService.searchDump('/tmp/backup',listServices, listConfig)
@@ -122,6 +183,16 @@ class test_BackupTest(unittest.TestCase):
                 'entrypoint': "sh -c",
                 'environments': ['PGPASSWORD:pass'],
                 'image': 'postgres:latest'
+            },
+            {
+                'service': listServices[1],
+                'target_dir': '/tmp/backup/stack-test/test2',
+                'commands': [
+                    'mysqldump -h 10.1.0.2 -U user -d test -f /tmp/backup/stack-test/test2/test.dump',
+                    'fake_cmd2 -h 10.1.0.2 -U user'
+                ],
+                'environments': ['MYSQLPASSWORD:pass'],
+                'image': 'mysql:latest'
             }
         ]
 
@@ -225,6 +296,58 @@ class test_BackupTest(unittest.TestCase):
                     }
 
                 ],
+            },
+            {
+                'name': 'test2',
+                'state': 'active',
+                'launchConfig': {
+                    'imageUuid': 'test/mysql:latest',
+                    'environment': {
+                        'MYSQL_USER': 'user',
+                        'MYSQL_DB': 'test',
+                        'MYSQL_PASSWORD': 'pass'
+                    }
+                },
+                'links': {
+                    'environment': 'https://fake/environment',
+                    'instances': 'https://fake/instances',
+                },
+                'stack': {
+                    'name': 'stack-test'
+                },
+                'instances': [
+                    {
+                        'state': 'disabled',
+                        'primaryIpAddress': '10.1.0.1',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.1.0.2',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.1.0.3',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    }
+
+                ],
             }
         ]
 
@@ -236,14 +359,25 @@ class test_BackupTest(unittest.TestCase):
                 'entrypoint': "sh -c",
                 'environments': ['PGPASSWORD:pass'],
                 'image': 'postgres:latest'
+            },
+            {
+                'service': listServices[1],
+                'target_dir': '/tmp/backup/stack-test/test2',
+                'commands': [
+                    'mysqldump -h 10.1.0.2 -U user -d test -f /tmp/backup/stack-test/test2/test.dump',
+                    'fake_cmd2 -h 10.1.0.2 -U user'
+                ],
+                'environments': ['MYSQLPASSWORD:pass'],
+                'image': 'mysql:latest'
             }
         ]
 
         backupService.runDump(listDump)
         print("Nb call %s" % mock_runCmd.call_args_list)
         mock_runCmd.assert_any_call(mock.ANY, 'docker pull postgres:latest')
-        mock_runCmd.assert_any_call(mock.ANY, "docker run --rm --entrypoint 'sh -c' -v /tmp/backup/stack-test/test:/tmp/backup/stack-test/test  -e 'PGPASSWORD=pass' postgres:latest pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump")
-
+        mock_runCmd.assert_any_call(mock.ANY, "docker run --rm --entrypoint='sh -c' -v /tmp/backup/stack-test/test:/tmp/backup/stack-test/test  -e 'PGPASSWORD=pass' postgres:latest pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump")
+        mock_runCmd.assert_any_call(mock.ANY, 'docker pull mysql:latest')
+        mock_runCmd.assert_any_call(mock.ANY, "docker run --rm  -v /tmp/backup/stack-test/test2:/tmp/backup/stack-test/test2  -e 'MYSQLPASSWORD=pass' mysql:latest mysqldump -h 10.1.0.2 -U user -d test -f /tmp/backup/stack-test/test2/test.dump")
 
 if __name__ == '__main__':
     unittest.main()
