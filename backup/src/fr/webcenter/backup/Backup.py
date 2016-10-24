@@ -227,7 +227,7 @@ class Backup(object):
 
         if backupPath is None or backupPath == "":
             raise KeyError("backupPath must be provided")
-        if listEnvironments is None or isinstance(listEnvironments, list) is False:
+        if isinstance(listEnvironments, list) is False:
             raise KeyError("listEnvironments must be provided")
 
         for environment in listEnvironments:

@@ -123,7 +123,6 @@ if __name__ == '__main__':
         listSettings = configService.getConfig()
 
 
-
         # We init duplicity
         try:
             backupService.initDuplicity(BACKUP_PATH, backend)

@@ -74,6 +74,9 @@ class Rancher(object):
             logger.debug("Grab setting for stack %s", environment['name'])
             environment['settings'] = self._client._get(environment['actions']['exportconfig'])
 
+
+        logger.debug("Return: %s", listEnvironments)
+
         return listEnvironments
 
 
