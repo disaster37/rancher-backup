@@ -46,9 +46,9 @@ class Backup(object):
                     logger.info("Found '%s/%s' to do dumping" % (service['stack']['name'], service['name']))
 
                     #Replace macro ip
-                    commands = setting['commands']
+                    commands = list(setting['commands'])
                     if 'environment' in setting:
-                        environments = setting['environment']
+                        environments = list(setting['environment'])
                     else:
                         environments = []
                     ip = None
