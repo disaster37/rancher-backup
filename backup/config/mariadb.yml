@@ -1,0 +1,7 @@
+mariadb:
+  regex: "mariadb"
+  image: "mariadb:latest"
+  commands:
+    - "sh -c 'mysqldump -h %ip% -u %env_MYSQL_USER% %env_MYSQL_DATABASE% > %target_dir%/%env_MYSQL_DATABASE%.dump'"
+  environment:
+    - MYSQL_PWD:%env_MYSQL_PASSWORD%
