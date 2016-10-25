@@ -77,6 +77,6 @@ class Rancher(object):
 
         logger.debug("Return: %s", listEnvironments['data'])
 
-        return listEnvironments['data']
+        return listEnvironments
 
 

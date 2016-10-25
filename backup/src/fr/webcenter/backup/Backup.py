@@ -29,7 +29,7 @@ class Backup(object):
         if backupPath is None or backupPath == "":
             raise KeyError("backupPath must be provided")
         if isinstance(listServices, list) is False:
-            raise KeyError("listServices must be a dict")
+            raise KeyError("listServices must be a list")
         if isinstance(listSettings, dict) is False:
             raise KeyError("listSettings must be a dict")
 
@@ -102,7 +102,7 @@ class Backup(object):
         """
 
         if isinstance(listDump, list) is False:
-            raise KeyError("listDump must be a dict")
+            raise KeyError("listDump must be a list")
 
         logger.debug("listDump: %s", listDump)
 

@@ -1,3 +1,5 @@
+__author__ = 'disaster'
+
 import os
 import sys
 from fr.webcenter.backup.Backup import Backup
@@ -141,6 +143,7 @@ if __name__ == '__main__':
         # We dump the rancher settings
         if DISABLE_DUMP_RANCHER != "true":
             listStacks = rancherService.getStacks()
+            logger.debug("Type : %s", type(listStacks))
             backupService.dumpStacksSettings(BACKUP_PATH + '/rancher', listStacks)
 
         # We run the backup
