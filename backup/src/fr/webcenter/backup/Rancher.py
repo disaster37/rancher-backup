@@ -70,13 +70,15 @@ class Rancher(object):
         """
 
         listEnvironments = self._client.list('environment')
+        targetListEnvironment = []
         for environment in listEnvironments:
             logger.debug("Grab setting for stack %s", environment['name'])
             environment['settings'] = self._client._get(environment['actions']['exportconfig'])
+            targetListEnvironment.append(environment)
 
 
-        logger.debug("Return: %s", listEnvironments['data'])
+        logger.debug("Return: %s", targetListEnvironment)
 
-        return listEnvironments
+        return targetListEnvironment
 
 
