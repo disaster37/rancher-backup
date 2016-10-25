@@ -75,8 +75,8 @@ class Rancher(object):
             environment['settings'] = self._client._get(environment['actions']['exportconfig'])
 
 
-        logger.debug("Return: %s", listEnvironments)
+        logger.debug("Return: %s", listEnvironments['data'])
 
-        return listEnvironments
+        return listEnvironments['data']
 
 
