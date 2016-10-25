@@ -29,7 +29,7 @@ class Backup(object):
         if backupPath is None or backupPath == "":
             raise KeyError("backupPath must be provided")
         if isinstance(listServices, list) is False:
-            raise KeyError("listServices must be a dict")
+            raise KeyError("listServices must be a list")
         if isinstance(listSettings, dict) is False:
             raise KeyError("listSettings must be a dict")
 
@@ -46,9 +46,9 @@ class Backup(object):
                     logger.info("Found '%s/%s' to do dumping" % (service['stack']['name'], service['name']))
 
                     #Replace macro ip
-                    commands = setting['commands']
+                    commands = list(setting['commands'])
                     if 'environment' in setting:
-                        environments = setting['environment']
+                        environments = list(setting['environment'])
                     else:
                         environments = []
                     ip = None
@@ -102,7 +102,7 @@ class Backup(object):
         """
 
         if isinstance(listDump, list) is False:
-            raise KeyError("listDump must be a dict")
+            raise KeyError("listDump must be a list")
 
         logger.debug("listDump: %s", listDump)
 
@@ -117,7 +117,7 @@ class Backup(object):
 
 
             if 'entrypoint' in dump:
-                entrypoint = dump['entrypoint']
+                entrypoint = "--entrypoint='%s'" % dump['entrypoint']
             else:
                 entrypoint = ''
 
@@ -131,7 +131,7 @@ class Backup(object):
             commandService.runCmd("docker pull %s" % dump['image'])
 
             for command in dump['commands']:
-                dockerCmd = "docker run --rm --entrypoint '%s' -v %s:%s %s %s %s" % (entrypoint, dump['target_dir'], dump['target_dir'], environments, dump['image'], command)
+                dockerCmd = "docker run --rm %s -v %s:%s %s %s %s" % (entrypoint, dump['target_dir'], dump['target_dir'], environments, dump['image'], command)
                 commandService.runCmd(dockerCmd)
             logger.info("Dump %s/%s is finished" % (dump['service']['stack']['name'], dump['service']['name']))
 
@@ -214,6 +214,44 @@ class Backup(object):
         logger.info("Cleanup backup")
         result = commandService.runCmd("duplicity  cleanup --force --no-encryption %s" % (backend))
         logger.info(result)
+
+
+    def dumpStacksSettings(self,backupPath, listEnvironments):
+        """
+        Permit to write the stack setting in docker-compose file and rancher-compose file.
+        :param backupPath: the backup path where store the stack setting extraction
+        :param listEnvironments: the list of stack
+        :type backupPath: str
+        :type listEnvironments: list
+        """
+
+        if backupPath is None or backupPath == "":
+            raise KeyError("backupPath must be provided")
+        if isinstance(listEnvironments, list) is False:
+            raise KeyError("listEnvironments must be provided")
+
+        for environment in listEnvironments:
+
+            targetDir = "%s/%s" % (backupPath, environment['name'])
+            logger.info("Save the Rancher setting for stack %s in %s", environment['name'], targetDir)
+
+            if os.path.isdir(targetDir) is False:
+                os.makedirs(targetDir)
+                logger.debug("Create directory '%s'", targetDir)
+            else:
+                logger.debug("Directory '%s' already exist", targetDir)
+
+            # Save docker-compose
+            fp = open(targetDir + '/docker-compose.yml', 'w')
+            fp.write(environment['settings']['dockerComposeConfig'])
+            fp.close()
+
+            # Save rancher-compose
+            fp = open(targetDir + '/rancher-compose.yml', 'w')
+            fp.write(environment['settings']['rancherComposeConfig'])
+            fp.close()
+
+
 
 
     def _replaceMacro(self, macro, value, data):

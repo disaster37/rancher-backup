@@ -32,10 +32,9 @@ class Command(object):
 
         logger.debug("Results : %s", out)
 
-        if err:
-            raise Exception("Error when run cmd " + cmd + " : " + err)
-        elif p.returncode != 0:
-            raise Exception("Error when run cmd " + cmd + " : " + out)
+
+        if p.returncode != 0:
+            raise Exception("Error when run cmd " + cmd + " : " + out + "\n" + err)
 
         out = out.decode('utf-8')
 

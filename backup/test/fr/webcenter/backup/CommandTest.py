@@ -24,7 +24,7 @@ class CommandTest(unittest.TestCase):
         # With error
         mock_popen.return_value.returncode = 0
         mock_popen.return_value.communicate.return_value = ("output", "Error")
-        self.assertRaises(Exception, commandService.runCmd, "fake cmd")
+        self.assertEqual("output", result)
 
         # With bad return code
         mock_popen.return_value.returncode = 1

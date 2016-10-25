@@ -141,3 +141,13 @@ class RancherTest(unittest.TestCase):
         rancherService = Rancher()
         listServices = rancherService.getServices()
         self.assertEquals(listServices, targetListServices)
+
+    @mock.patch.object(Client, '_get', autospec=True)
+    @mock.patch.object(Client, 'list', autospec=True)
+    @mock.patch.object(Client, '__init__', side_effect=fakeClient)
+    def testGetStacks(self, mock_init, mock_list, mock_get):
+
+        rancherService = Rancher("https://url", "key", "secret")
+        rancherService.getStacks()
+        mock_list.assert_any_call(mock.ANY,'environment')
+
