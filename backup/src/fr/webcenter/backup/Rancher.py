@@ -49,9 +49,6 @@ class Rancher(object):
                 if "environment" in service['links']:
                     service['stack'] = self._client._get(service['links']['environment'])
                     logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
-                elif "stack" in service['links']:
-                    service['stack'] = self._client._get(service['links']['stack'])
-                    logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
 
 
                 # We add the instances
