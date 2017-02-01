@@ -46,17 +46,22 @@ class Rancher(object):
                 logger.debug("Found service %s", service["name"])
 
                 # We add the stack associated to it
-                if "environment" in service['links']:
+                if 'environment' in service['links']:
                     service['stack'] = self._client._get(service['links']['environment'])
                     logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
+                else:
+                    logger.debug("No stack for service %s", service["name"])
 
 
                 # We add the instances
-                service['instances'] = self._client._get(service['links']['instances'])
-                for instance in service['instances']:
-                    instance['host'] = self._client._get(instance['links']['hosts'])[0]
+                if 'instances' in service['links']:
+                    service['instances'] = self._client._get(service['links']['instances'])
+                    for instance in service['instances']:
+                        instance['host'] = self._client._get(instance['links']['hosts'])[0]
 
-                logger.debug("Service %s have %d intances", service["name"], len(service['instances']))
+                    logger.debug("Service %s have %d intances", service["name"], len(service['instances']))
+                else:
+                    logger.debug("No instance for service %s", service["name"])
 
 
                 targetListServices.append(service)
