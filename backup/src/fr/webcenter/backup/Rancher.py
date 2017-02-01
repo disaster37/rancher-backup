@@ -41,20 +41,27 @@ class Rancher(object):
         # We keep only enable services and services that have not 'backup.disable' label set to true
         targetListServices = []
         for service in listServices:
-            if "imageUuid" in service['launchConfig'] and  service["state"] == "active" and ("labels" not in service['launchConfig'] or ("backup.disable" not in service['launchConfig']['labels'] or service['launchConfig']['labels']['backup.disable'] == "false")):
+            if service["type"] == "service" and "imageUuid" in service['launchConfig'] and  service["state"] == "active" and ("labels" not in service['launchConfig'] or ("backup.disable" not in service['launchConfig']['labels'] or service['launchConfig']['labels']['backup.disable'] == "false")):
 
-                logger.debug("Service %s must be dumping", service["name"])
+                logger.debug("Found service %s", service["name"])
 
                 # We add the stack associated to it
-                service['stack'] = self._client._get(service['links']['environment'])
-                logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
+                if 'environment' in service['links']:
+                    service['stack'] = self._client._get(service['links']['environment'])
+                    logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
+                else:
+                    logger.debug("No stack for service %s", service["name"])
+
 
                 # We add the instances
-                service['instances'] = self._client._get(service['links']['instances'])
-                for instance in service['instances']:
-                    instance['host'] = self._client._get(instance['links']['hosts'])[0]
+                if 'instances' in service['links']:
+                    service['instances'] = self._client._get(service['links']['instances'])
+                    for instance in service['instances']:
+                        instance['host'] = self._client._get(instance['links']['hosts'])[0]
 
-                logger.debug("Service %s have %d intances", service["name"], len(service['instances']))
+                    logger.debug("Service %s have %d intances", service["name"], len(service['instances']))
+                else:
+                    logger.debug("No instance for service %s", service["name"])
 
 
                 targetListServices.append(service)
