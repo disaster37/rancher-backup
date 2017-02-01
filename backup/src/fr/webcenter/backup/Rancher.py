@@ -43,11 +43,16 @@ class Rancher(object):
         for service in listServices:
             if "imageUuid" in service['launchConfig'] and  service["state"] == "active" and ("labels" not in service['launchConfig'] or ("backup.disable" not in service['launchConfig']['labels'] or service['launchConfig']['labels']['backup.disable'] == "false")):
 
-                logger.debug("Service %s must be dumping", service["name"])
+                logger.debug("Found service %s", service["name"])
 
                 # We add the stack associated to it
-                service['stack'] = self._client._get(service['links']['environment'])
-                logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
+                if "environment" in service['links']:
+                    service['stack'] = self._client._get(service['links']['environment'])
+                    logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
+                elif "stack" in service['links']:
+                    service['stack'] = self._client._get(service['links']['stack'])
+                    logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
+
 
                 # We add the instances
                 service['instances'] = self._client._get(service['links']['instances'])
