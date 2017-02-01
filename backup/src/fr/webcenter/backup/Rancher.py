@@ -41,7 +41,7 @@ class Rancher(object):
         # We keep only enable services and services that have not 'backup.disable' label set to true
         targetListServices = []
         for service in listServices:
-            if "imageUuid" in service['launchConfig'] and  service["state"] == "active" and ("labels" not in service['launchConfig'] or ("backup.disable" not in service['launchConfig']['labels'] or service['launchConfig']['labels']['backup.disable'] == "false")):
+            if service["type"] == "service" and "imageUuid" in service['launchConfig'] and  service["state"] == "active" and ("labels" not in service['launchConfig'] or ("backup.disable" not in service['launchConfig']['labels'] or service['launchConfig']['labels']['backup.disable'] == "false")):
 
                 logger.debug("Found service %s", service["name"])
 
