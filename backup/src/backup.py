@@ -47,14 +47,14 @@ if __name__ == '__main__':
     DISABLE_DUMP = os.getenv('DISABLE_DUMP', "false")
     DISABLE_DUMP_RANCHER = os.getenv('DISABLE_DUMP_RANCHER', "false")
 
-    if os.getenv("RANCHER_API_URL") is None or os.getenv("RANCHER_API_URL") == "":
-        logger.error("RANCHER_API_URL must be provided")
+    if os.getenv("CATTLE_URL") is None or os.getenv("CATTLE_URL") == "":
+        logger.error("CATTLE_URL must be provided")
         sys.exit(1)
-    if os.getenv("RANCHER_API_KEY") is None or os.getenv("RANCHER_API_KEY") == "":
-        logger.error("RANCHER_API_KEY must be provided")
+    if os.getenv("CATTLE_ACCESS_KEY") is None or os.getenv("CATTLE_ACCESS_KEY") == "":
+        logger.error("CATTLE_ACCESS_KEY must be provided")
         sys.exit(1)
-    if os.getenv("RANCHER_API_SECRET") is None or os.getenv("RANCHER_API_SECRET") == "":
-        logger.error("RANCHER_API_SECRET must be provided")
+    if os.getenv("CATTLE_SECRET_KEY") is None or os.getenv("CATTLE_SECRET_KEY") == "":
+        logger.error("CATTLE_SECRET_KEY must be provided")
         sys.exit(1)
     if BACKUP_PATH is None or BACKUP_PATH == "":
         logger.error("BACKUP_PATH must be provided")
@@ -86,12 +86,8 @@ if __name__ == '__main__':
 
 
 
-
-
-
-
-    logger.info("Rancher URL: %s", os.getenv("RANCHER_API_URL"))
-    logger.info("Rancher key: %s", os.getenv("RANCHER_API_KEY"))
+    logger.info("Rancher URL: %s", os.getenv("CATTLE_URL"))
+    logger.info("Rancher key: %s", os.getenv("CATTLE_ACCESS_KEY"))
     logger.info("Rancher secret: XXXX")
     logger.info("Backup path: %s", BACKUP_PATH)
     logger.info("Backup target path: %s", TARGET_PATH)
@@ -103,7 +99,7 @@ if __name__ == '__main__':
 
     # Init services
     try:
-        rancherService = Rancher(os.getenv("RANCHER_API_URL"), os.getenv("RANCHER_API_KEY"), os.getenv("RANCHER_API_SECRET"))
+        rancherService = Rancher(os.getenv("CATTLE_URL"), os.getenv("CATTLE_ACCESS_KEY"), os.getenv("CATTLE_SECRET_KEY"))
     except Exception as e:
         logger.error("Can't connect to rancher API : %s", e.message)
         logger.error(traceback.format_exc())
