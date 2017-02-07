@@ -45,9 +45,15 @@ The following options permit to set the backup policy :
 - `BK_KEEP_FULL`: How many full backup you should to keep. For example, to keep 3 full backup set `3`. The default value is `3`.
 - `BK_KEEP_FULL_CHAIN`: The number of intermediate incremental backup you should keep with the full backup. For example, if you should keep only the incremental backend after the last full backup set `1`. The default value is set to `1`.
 - `VOLUME_SIZE`: The volume size to store the backup (in MB). The default value is `25`.
-- `RANCHER_API_URL`: the API URL with your project ID
-- `RANCHER_API_KEY`: the API key
-- `RANCHER_API_SECRET`: the API secret key
+
+To set the Rancher API connection prefer to add special label that generate access on the flow:
+- `io.rancher.container.create_agent=true`
+- `io.rancher.container.agent.role=environment`
+
+Or you can define them manually :
+- `CATTLE_URL`: the API URL with your project ID
+- `CATTLE_ACCESS_KEY`: the API key
+- `CATTLE_SECRET_KEY`: the API secret key
 
 ## How to extend this
 
