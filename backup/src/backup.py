@@ -47,14 +47,14 @@ if __name__ == '__main__':
     DISABLE_DUMP = os.getenv('DISABLE_DUMP', "false")
     DISABLE_DUMP_RANCHER = os.getenv('DISABLE_DUMP_RANCHER', "false")
 
-    if os.getenv("RANCHER_API_URL") is None or os.getenv("RANCHER_API_URL") == "":
-        logger.error("RANCHER_API_URL must be provided")
+    if os.getenv("CATTLE_URL") is None or os.getenv("CATTLE_URL") == "":
+        logger.error("CATTLE_URL must be provided")
         sys.exit(1)
-    if os.getenv("RANCHER_API_KEY") is None or os.getenv("RANCHER_API_KEY") == "":
-        logger.error("RANCHER_API_KEY must be provided")
+    if os.getenv("CATTLE_ACCESS_KEY") is None or os.getenv("CATTLE_ACCESS_KEY") == "":
+        logger.error("CATTLE_ACCESS_KEY must be provided")
         sys.exit(1)
-    if os.getenv("RANCHER_API_SECRET") is None or os.getenv("RANCHER_API_SECRET") == "":
-        logger.error("RANCHER_API_SECRET must be provided")
+    if os.getenv("CATTLE_SECRET_KEY") is None or os.getenv("CATTLE_SECRET_KEY") == "":
+        logger.error("CATTLE_SECRET_KEY must be provided")
         sys.exit(1)
     if BACKUP_PATH is None or BACKUP_PATH == "":
         logger.error("BACKUP_PATH must be provided")
