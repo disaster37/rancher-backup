@@ -90,8 +90,8 @@ if __name__ == '__main__':
 
 
 
-    logger.info("Rancher URL: %s", os.getenv("RANCHER_API_URL"))
-    logger.info("Rancher key: %s", os.getenv("RANCHER_API_KEY"))
+    logger.info("Rancher URL: %s", os.getenv("CATTLE_URL"))
+    logger.info("Rancher key: %s", os.getenv("CATTLE_ACCESS_KEY"))
     logger.info("Rancher secret: XXXX")
     logger.info("Backup path: %s", BACKUP_PATH)
     logger.info("Backup target path: %s", TARGET_PATH)
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     # Init services
     try:
-        rancherService = Rancher(os.getenv("RANCHER_API_URL"), os.getenv("RANCHER_API_KEY"), os.getenv("RANCHER_API_SECRET"))
+        rancherService = Rancher(os.getenv("CATTLE_URL"), os.getenv("CATTLE_ACCESS_KEY"), os.getenv("CATTLE_SECRET_KEY"))
     except Exception as e:
         logger.error("Can't connect to rancher API : %s", e.message)
         logger.error(traceback.format_exc())
