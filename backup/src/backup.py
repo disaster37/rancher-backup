@@ -86,10 +86,6 @@ if __name__ == '__main__':
 
 
 
-
-
-
-
     logger.info("Rancher URL: %s", os.getenv("CATTLE_URL"))
     logger.info("Rancher key: %s", os.getenv("CATTLE_ACCESS_KEY"))
     logger.info("Rancher secret: XXXX")
