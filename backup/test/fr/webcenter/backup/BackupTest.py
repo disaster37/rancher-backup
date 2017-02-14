@@ -3,29 +3,47 @@ __author__ = 'disaster'
 import unittest
 import mock
 import os
+import logging
+import sys
 import io
 from mock import mock_open
-import fr.webcenter.backup.Backup
 import __builtin__
 from fr.webcenter.backup.Backup import Backup
 from fr.webcenter.backup.Command import Command
 
+logger = logging.getLogger()
+logger.level = logging.DEBUG
+stream_handler = logging.StreamHandler(sys.stdout)
+logger.addHandler(stream_handler)
 
 def fakeInitDuplicity(cmd):
     return cmd
 
 class BackupTest(unittest.TestCase):
 
-    def test_replaceMacro(self):
+    def testReplaceMacro(self):
         backupService = Backup()
 
-        # We a list
+        # With a string
         result = backupService._replaceMacro("%ip%", "10.0.0.1", "ip: %ip%")
         self.assertEqual("ip: 10.0.0.1", result)
 
         # With a list
         result = backupService._replaceMacro("%ip%", "10.0.0.1", ["ip: %ip%", "ddd: dfdf", "test: %ip% sdsd"])
         self.assertEqual(["ip: 10.0.0.1", "ddd: dfdf", "test: 10.0.0.1 sdsd"], result)
+
+
+    def testCheckNoMacro(self):
+        backupService = Backup()
+
+        # With string
+        self.assertEqual(True, backupService._checkNoMacro("blabla without macro"))
+        self.assertEqual(False, backupService._checkNoMacro("blabla with %macro% ;)"))
+
+        # With list
+        self.assertEqual(True, backupService._checkNoMacro(["blabla without macro", "blbla"]))
+        self.assertEqual(False, backupService._checkNoMacro(["blabla", "blabla with %macro% ;)", "blabla"]))
+
 
     @mock.patch.object(Command, 'runCmd', autospec=True)
     def testInitDuplicity(self, mock_runCmd):
@@ -48,6 +66,7 @@ class BackupTest(unittest.TestCase):
 
         listServices = [
             {
+                'type': 'service',
                 'name': 'test',
                 'state': 'active',
                 'launchConfig': {
@@ -100,14 +119,67 @@ class BackupTest(unittest.TestCase):
                 ],
             },
             {
+                'type': 'service',
                 'name': 'test2',
                 'state': 'active',
                 'launchConfig': {
                     'imageUuid': 'test/mysql:latest',
                     'environment': {
                         'MYSQL_USER': 'user',
-                        'MYSQL_DB': 'test',
+                        'MYSQL_DATABASE': 'test',
                         'MYSQL_PASSWORD': 'pass'
+                    }
+                },
+                'links': {
+                    'environment': 'https://fake/environment',
+                    'instances': 'https://fake/instances',
+                },
+                'stack': {
+                    'name': 'stack-test'
+                },
+                'instances': [
+                    {
+                        'state': 'disabled',
+                        'primaryIpAddress': '10.1.0.1',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.1.0.2',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.1.0.3',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    }
+
+                ],
+            },
+            {
+                'type': 'service',
+                'name': 'test3',
+                'state': 'active',
+                'launchConfig': {
+                    'imageUuid': 'test/mysql:latest',
+                    'environment': {
+                        'MYSQL_DATABASE': 'test',
+                        'MYSQL_ROOT_PASSWORD': 'root_pass'
                     }
                 },
                 'links': {
@@ -163,16 +235,16 @@ class BackupTest(unittest.TestCase):
                     'fake_cmd2 -h %ip% -U %env_POSTGRES_USER%'
                 ],
                 'entrypoint': "sh -c",
-                'environment': ['PGPASSWORD:%env_POSTGRES_PASSWORD%']
+                'environments': ['PGPASSWORD:%env_POSTGRES_PASSWORD%']
             },
             'mysql': {
                 'regex': "mysql",
                 'image': 'mysql:latest',
                 'commands': [
-                    'mysqldump -h %ip% -U %env_MYSQL_USER% -d %env_MYSQL_DB% -f %target_dir%/%env_MYSQL_DB%.dump',
+                    'mysqldump -h %ip% -U %env_MYSQL_USER% -d %env_MYSQL_DATABASE% -f %target_dir%/%env_MYSQL_DATABASE%.dump',
                     'fake_cmd2 -h %ip% -U %env_MYSQL_USER%'
                 ],
-                'environment': ['MYSQLPASSWORD:%env_MYSQL_PASSWORD%']
+                'environments': ['MYSQLPASSWORD:%env_MYSQL_PASSWORD%']
             }
         }
         result = backupService.searchDump('/tmp/backup',listServices, listConfig)
@@ -200,6 +272,7 @@ class BackupTest(unittest.TestCase):
                 'image': 'mysql:latest'
             }
         ]
+
 
         self.assertEqual(targetResult, result)
 
@@ -244,6 +317,51 @@ class BackupTest(unittest.TestCase):
 
         self.assertEqual(targetResult, result)
 
+        # With alternative templates
+        listConfig = {
+            'mysql': {
+                'regex': "mysql",
+                'image': "mysql:latest",
+                'commands': [
+                    'mysqldump -h %ip% -u %env_MYSQL_USER% %env_MYSQL_DATABASE% > %target_dir%/%env_MYSQL_DATABASE%.dump'],
+                'environments': ['MYSQL_PWD:%env_MYSQL_PASSWORD%']
+            },
+            'mysql-root': {
+                'regex': "mysql",
+                'image': "mysql:latest",
+                'commands': [
+                    'mysqldump -h %ip% -u root %env_MYSQL_DATABASE% > %target_dir%/%env_MYSQL_DATABASE%.dump'],
+                'environments': ['MYSQL_PWD:%env_MYSQL_ROOT_PASSWORD%']
+            }
+        }
+        result = backupService.searchDump('/tmp/backup', listServices, listConfig)
+
+        targetResult = [
+            {
+                'service': listServices[1],
+                'target_dir': '/tmp/backup/stack-test/test2',
+                'commands': [
+                    'mysqldump -h 10.1.0.2 -u user test > /tmp/backup/stack-test/test2/test.dump'
+                ],
+                'environments': ['MYSQL_PWD:pass'],
+                'image': 'mysql:latest'
+            },
+            {
+                'service': listServices[2],
+                'target_dir': '/tmp/backup/stack-test/test3',
+                'commands': [
+                    'mysqldump -h 10.1.0.2 -u root test > /tmp/backup/stack-test/test3/test.dump'
+                ],
+                'environments': ['MYSQL_PWD:root_pass'],
+                'image': 'mysql:latest'
+            },
+
+        ]
+
+        self.maxDiff = None
+        self.assertEqual(targetResult, result)
+
+
     @mock.patch.object(Command, 'runCmd', autospec=True)
     def testRunDump(self, mock_runCmd):
 
@@ -251,6 +369,7 @@ class BackupTest(unittest.TestCase):
 
         listServices = [
             {
+                'type': 'service',
                 'name': 'test',
                 'state': 'active',
                 'launchConfig': {
@@ -303,6 +422,7 @@ class BackupTest(unittest.TestCase):
                 ],
             },
             {
+                'type': 'service',
                 'name': 'test2',
                 'state': 'active',
                 'launchConfig': {

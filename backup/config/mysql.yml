@@ -3,5 +3,5 @@ mysql:
   image: "mysql:latest"
   commands:
     - "sh -c 'mysqldump -h %ip% -u %env_MYSQL_USER% %env_MYSQL_DATABASE% > %target_dir%/%env_MYSQL_DATABASE%.dump'"
-  environment:
+  environments:
     - MYSQL_PWD:%env_MYSQL_PASSWORD%

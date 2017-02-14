@@ -6,6 +6,7 @@ import os
 from fr.webcenter.backup.Command import Command
 from fr.webcenter.backup.Singleton import Singleton
 
+
 logger = logging
 class Backup(object):
     """
@@ -47,8 +48,8 @@ class Backup(object):
 
                     #Replace macro ip
                     commands = list(setting['commands'])
-                    if 'environment' in setting:
-                        environments = list(setting['environment'])
+                    if 'environments' in setting:
+                        environments = list(setting['environments'])
                     else:
                         environments = []
                     ip = None
@@ -58,12 +59,12 @@ class Backup(object):
                             logger.debug("Found IP %s", ip)
                             break
                     commands = self._replaceMacro('%ip%', ip, commands)
-                    environments = self._replaceMacro("%ip", ip, environments)
+                    environments = self._replaceMacro("%ip%", ip, environments)
 
                     # Replace target_dir macro
                     target_dir = backupPath + "/" + service['stack']['name'] + "/" + service['name']
                     commands = self._replaceMacro('%target_dir%', target_dir, commands)
-                    environments = self._replaceMacro("%target_dir", target_dir, environments)
+                    environments = self._replaceMacro("%target_dir%", target_dir, environments)
 
                     # Replace environment macro
                     if 'environment' in service['launchConfig']:
@@ -71,23 +72,29 @@ class Backup(object):
                             commands = self._replaceMacro("%env_" + envKey + "%", envValue, commands)
                             environments = self._replaceMacro("%env_" + envKey + "%", envValue, environments)
 
-                    dump = {}
-                    dump['service'] = service
-                    dump['target_dir'] = target_dir
-                    dump['commands'] = commands
-                    dump["environments"] = environments
-                    if "image" in setting:
-                        dump['image'] = setting['image']
+
+                    # Check that all macros have been overwrite, then try next template
+                    if self._checkNoMacro(commands) and self._checkNoMacro(environments) and self._checkNoMacro(target_dir):
+
+                        dump = {}
+                        dump['service'] = service
+                        dump['target_dir'] = target_dir
+                        dump['commands'] = commands
+                        dump["environments"] = environments
+                        if "image" in setting:
+                            dump['image'] = setting['image']
+                        else:
+                            dump['image'] = service['launchConfig']['imageUuid']
+                        if "entrypoint" in setting:
+                            dump['entrypoint'] = setting['entrypoint']
+
+
+
+
+                        listDump.append(dump)
+                        break
                     else:
-                        dump['image'] = service['launchConfig']['imageUuid']
-                    if "entrypoint" in setting:
-                        dump['entrypoint'] = setting['entrypoint']
-
-
-
-
-                    listDump.append(dump)
-                    break
+                        logger.info("Skip to use template '%s', because we can't overwrite all macros", name)
 
         logger.debug(listDump)
 
@@ -287,3 +294,37 @@ class Backup(object):
             raise KeyError("Data must be str or list")
 
         return data
+
+
+    def _checkNoMacro(self, data):
+        """
+        Permit to replace macro by value on data.
+        :param data: search macro on it
+        :type data: str or list
+        :return true if no macro found, else false
+        """
+
+        if data is None:
+            raise KeyError("Data must be provided")
+
+        logger.debug("data: %s", data)
+
+
+        if isinstance(data, basestring):
+            if re.search('%[^%]+%', data):
+                return False
+            else:
+                return True
+
+        elif isinstance(data, list):
+            for index in range(len(data)):
+                if re.search('%[^%]+%', data[index]):
+                    return False
+
+            return True
+
+        else:
+            raise KeyError("Data must be str or list")
+
+        return False
+

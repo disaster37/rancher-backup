@@ -10,6 +10,7 @@ def fakeCallApiList(section):
     if section == "service":
 
         service = {}
+        service['type'] = "service"
         service['name'] = "test"
         service["state"] = "active"
         service['launchConfig'] = {}
@@ -83,6 +84,7 @@ class RancherTest(unittest.TestCase):
 
         targetListServices = [
             {
+                'type': 'service',
                 'name': 'test',
                 'state': 'active',
                 'launchConfig': {
