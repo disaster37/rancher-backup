@@ -21,29 +21,6 @@ def fakeInitDuplicity(cmd):
 
 class BackupTest(unittest.TestCase):
 
-    def testReplaceMacro(self):
-        backupService = Backup()
-
-        # With a string
-        result = backupService._replaceMacro("%ip%", "10.0.0.1", "ip: %ip%")
-        self.assertEqual("ip: 10.0.0.1", result)
-
-        # With a list
-        result = backupService._replaceMacro("%ip%", "10.0.0.1", ["ip: %ip%", "ddd: dfdf", "test: %ip% sdsd"])
-        self.assertEqual(["ip: 10.0.0.1", "ddd: dfdf", "test: 10.0.0.1 sdsd"], result)
-
-
-    def testCheckNoMacro(self):
-        backupService = Backup()
-
-        # With string
-        self.assertEqual(True, backupService._checkNoMacro("blabla without macro"))
-        self.assertEqual(False, backupService._checkNoMacro("blabla with %macro% ;)"))
-
-        # With list
-        self.assertEqual(True, backupService._checkNoMacro(["blabla without macro", "blbla"]))
-        self.assertEqual(False, backupService._checkNoMacro(["blabla", "blabla with %macro% ;)", "blabla"]))
-
 
     @mock.patch.object(Command, 'runCmd', autospec=True)
     def testInitDuplicity(self, mock_runCmd):
@@ -170,58 +147,6 @@ class BackupTest(unittest.TestCase):
                     }
 
                 ],
-            },
-            {
-                'type': 'service',
-                'name': 'test3',
-                'state': 'active',
-                'launchConfig': {
-                    'imageUuid': 'test/mysql:latest',
-                    'environment': {
-                        'MYSQL_DATABASE': 'test',
-                        'MYSQL_ROOT_PASSWORD': 'root_pass'
-                    }
-                },
-                'links': {
-                    'environment': 'https://fake/environment',
-                    'instances': 'https://fake/instances',
-                },
-                'stack': {
-                    'name': 'stack-test'
-                },
-                'instances': [
-                    {
-                        'state': 'disabled',
-                        'primaryIpAddress': '10.1.0.1',
-                        'host': {
-                            'name': 'host-1'
-                        },
-                        'links': {
-                            'hosts': 'https://fake/hosts'
-                        }
-                    },
-                    {
-                        'state': 'running',
-                        'primaryIpAddress': '10.1.0.2',
-                        'host': {
-                            'name': 'host-1'
-                        },
-                        'links': {
-                            'hosts': 'https://fake/hosts'
-                        }
-                    },
-                    {
-                        'state': 'running',
-                        'primaryIpAddress': '10.1.0.3',
-                        'host': {
-                            'name': 'host-1'
-                        },
-                        'links': {
-                            'hosts': 'https://fake/hosts'
-                        }
-                    }
-
-                ],
             }
         ]
 
@@ -231,26 +156,27 @@ class BackupTest(unittest.TestCase):
                 'regex': "postgres",
                 'image': 'postgres:latest',
                 'commands': [
-                    'pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump',
-                    'fake_cmd2 -h %ip% -U %env_POSTGRES_USER%'
+                    'pg_dump -h {{ip}} -U {{env.POSTGRES_USER}} -d {{env.POSTGRES_DB}} -f {{target_dir}}/{{env.POSTGRES_DB}}.dump',
+                    'fake_cmd2 -h {{ip}} -U {{env.POSTGRES_USER}}'
                 ],
                 'entrypoint': "sh -c",
-                'environments': ['PGPASSWORD:%env_POSTGRES_PASSWORD%']
+                'environments': ['PGPASSWORD:{{env.POSTGRES_PASSWORD}}']
             },
             'mysql': {
                 'regex': "mysql",
                 'image': 'mysql:latest',
                 'commands': [
-                    'mysqldump -h %ip% -U %env_MYSQL_USER% -d %env_MYSQL_DATABASE% -f %target_dir%/%env_MYSQL_DATABASE%.dump',
-                    'fake_cmd2 -h %ip% -U %env_MYSQL_USER%'
+                    'mysqldump -h {{ip}} -U {{env.MYSQL_USER}} -d {{env.MYSQL_DATABASE}} -f {{target_dir}}/{{env.MYSQL_DATABASE}}.dump',
+                    'fake_cmd2 -h {{ip}} -U {{env.MYSQL_USER}}'
                 ],
-                'environments': ['MYSQLPASSWORD:%env_MYSQL_PASSWORD%']
+                'environments': ['MYSQLPASSWORD:{{env.MYSQL_PASSWORD}}']
             }
         }
         result = backupService.searchDump('/tmp/backup',listServices, listConfig)
 
         targetResult = [
             {
+                'regex': "postgres",
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': [
@@ -262,6 +188,7 @@ class BackupTest(unittest.TestCase):
                 'image': 'postgres:latest'
             },
             {
+                'regex': "mysql",
                 'service': listServices[1],
                 'target_dir': '/tmp/backup/stack-test/test2',
                 'commands': [
@@ -273,7 +200,7 @@ class BackupTest(unittest.TestCase):
             }
         ]
 
-
+        self.maxDiff = None
         self.assertEqual(targetResult, result)
 
         # Without environment on setting
@@ -281,13 +208,14 @@ class BackupTest(unittest.TestCase):
             'postgres': {
                 'regex': "postgres",
                 'image': 'postgres:latest',
-                'commands': ['pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump'],
+                'commands': ['pg_dump -h {{ip}} -U {{env.POSTGRES_USER}} -d {{env.POSTGRES_DB}} -f {{target_dir}}/{{env.POSTGRES_DB}}.dump'],
             }
         }
         result = backupService.searchDump('/tmp/backup', listServices, listConfig)
 
         targetResult = [
             {
+                'regex': "postgres",
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': ['pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump'],
@@ -296,17 +224,21 @@ class BackupTest(unittest.TestCase):
             }
         ]
 
+        self.maxDiff = None
+        self.assertEqual(targetResult, result)
+
         # Without image on setting
         listConfig = {
             'postgres': {
                 'regex': "postgres",
-                'commands': ['pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump'],
+                'commands': ['pg_dump -h {{ip}} -U {{env.POSTGRES_USER}} -d {{env.POSTGRES_DB}} -f {{target_dir}}/{{env.POSTGRES_DB}}.dump'],
             }
         }
         result = backupService.searchDump('/tmp/backup', listServices, listConfig)
 
         targetResult = [
             {
+                'regex': "postgres",
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': ['pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump'],
@@ -317,49 +249,7 @@ class BackupTest(unittest.TestCase):
 
         self.assertEqual(targetResult, result)
 
-        # With alternative templates
-        listConfig = {
-            'mysql': {
-                'regex': "mysql",
-                'image': "mysql:latest",
-                'commands': [
-                    'mysqldump -h %ip% -u %env_MYSQL_USER% %env_MYSQL_DATABASE% > %target_dir%/%env_MYSQL_DATABASE%.dump'],
-                'environments': ['MYSQL_PWD:%env_MYSQL_PASSWORD%']
-            },
-            'mysql-root': {
-                'regex': "mysql",
-                'image': "mysql:latest",
-                'commands': [
-                    'mysqldump -h %ip% -u root %env_MYSQL_DATABASE% > %target_dir%/%env_MYSQL_DATABASE%.dump'],
-                'environments': ['MYSQL_PWD:%env_MYSQL_ROOT_PASSWORD%']
-            }
-        }
-        result = backupService.searchDump('/tmp/backup', listServices, listConfig)
 
-        targetResult = [
-            {
-                'service': listServices[1],
-                'target_dir': '/tmp/backup/stack-test/test2',
-                'commands': [
-                    'mysqldump -h 10.1.0.2 -u user test > /tmp/backup/stack-test/test2/test.dump'
-                ],
-                'environments': ['MYSQL_PWD:pass'],
-                'image': 'mysql:latest'
-            },
-            {
-                'service': listServices[2],
-                'target_dir': '/tmp/backup/stack-test/test3',
-                'commands': [
-                    'mysqldump -h 10.1.0.2 -u root test > /tmp/backup/stack-test/test3/test.dump'
-                ],
-                'environments': ['MYSQL_PWD:root_pass'],
-                'image': 'mysql:latest'
-            },
-
-        ]
-
-        self.maxDiff = None
-        self.assertEqual(targetResult, result)
 
 
     @mock.patch.object(Command, 'runCmd', autospec=True)
@@ -726,7 +616,25 @@ class BackupTest(unittest.TestCase):
         mock_file.assert_any_call('/backup/lb/docker-compose.yml', 'w')
         mock_file.assert_any_call('/backup/lb/rancher-compose.yml', 'w')
 
+    @mock.patch.object(Command, 'runCmd', autospec=True)
+    def testDumpRancherDatabase(self, mock_runCmd):
+        backupService = Backup()
 
+        listDatabaseSettings = {
+            "type": "mysql",
+            "host": "db-host",
+            "port": "3306",
+            "db": "rancher",
+            "user": "user",
+            "password": "password"
+        }
+
+        backupService.dumpRancherDatabase('/tmp/backup', listDatabaseSettings)
+
+        #print("Call run: %s", mock_runCmd.call_args_list)
+
+        mock_runCmd.assert_any_call(mock.ANY, 'docker pull mysql:latest')
+        mock_runCmd.assert_any_call(mock.ANY, "docker run --rm -v /tmp/backup/database:/tmp/backup/database -e 'MYSQL_PWD=password' mysql:latest sh -c 'mysqldump -h db-host -p 3306 -u user rancher > /tmp/backup/database/rancher.dump'")
 
 
 

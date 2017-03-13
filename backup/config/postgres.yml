@@ -2,6 +2,25 @@ postgres:
   regex: "postgres"
   image: "postgres:latest"
   commands:
-    - "pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump"
+    {% if env.POSTGRES_USER and env.POSTGRES_DB %}
+    {# When user, password and database setted when created MySQL #}
+    - "pg_dump -h {{ ip }} -U {{ env.POSTGRES_USER }} -d {{ env.POSTGRES_DB }} -f {{ target_dir }}/{{ env.POSTGRES_DB }}.dump"
+
+    {% elif env.POSTGRES_USER and not env.POSTGRES_DB %}
+    {# When user, password setted when created MySQL #}
+    - "pg_dump -h {{ ip }} -U {{ env.POSTGRES_USER }} -d {{ env.POSTGRES_USER }} -f {{ target_dir }}/{{ env.POSTGRES_USER }}.dump"
+
+    {% elif not env.POSTGRES_USER and env.POSTGRES_DB %}
+    {# When database setted when created MySQL #}
+    - "pg_dump -h {{ ip }} -U postgres -d {{ env.POSTGRES_DB }} -f {{ target_dir }}/{{ env.POSTGRES_DB }}.dump"
+
+    {% elif not env.POSTGRES_USER and not env.POSTGRES_DB %}
+    {# When just root setted when created MySQL #}
+    - "pg_dumpall -h {{ ip }} -U postgres --clean -f {{ target_dir }}/all-databases.dump"
+
+    {% endif %}
+
   environment:
-    - PGPASSWORD:%env_POSTGRES_PASSWORD%
+    {% if env.POSTGRES_PASSWORD %}
+    - PGPASSWORD:{{ env.POSTGRES_PASSWORD}}
+    {% endif %}

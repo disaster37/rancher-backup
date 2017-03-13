@@ -89,3 +89,32 @@ class Rancher(object):
         return targetListEnvironment
 
 
+    def getDatabaseSettings(self):
+        """
+        Permit to get the Rancher database settings to perform backup on it
+        :return dict: the database settings to connect on it
+        """
+
+        listSettings = self._client.list('setting')
+        listTargetSettings = {}
+
+        for setting in listSettings:
+            if setting["name"] == "cattle.db.cattle.database":
+                listTargetSettings["type"] = setting["activeValue"]
+            elif setting["name"] == "cattle.db.cattle.mysql.host":
+                listTargetSettings["host"] = setting["activeValue"]
+            elif setting["name"] == "cattle.db.cattle.mysql.name":
+                listTargetSettings["db"] = setting["activeValue"]
+            elif setting["name"] == "cattle.db.cattle.mysql.port":
+                listTargetSettings["port"] = setting["activeValue"]
+            elif setting["name"] == "cattle.db.cattle.password":
+                listTargetSettings["password"] = setting["activeValue"]
+            elif setting["name"] == "cattle.db.cattle.username":
+                listTargetSettings["user"] = setting["activeValue"]
+
+        return listTargetSettings
+
+
+
+
+

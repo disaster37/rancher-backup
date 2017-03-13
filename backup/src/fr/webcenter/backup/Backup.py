@@ -5,6 +5,8 @@ import logging
 import os
 from fr.webcenter.backup.Command import Command
 from fr.webcenter.backup.Singleton import Singleton
+from jinja2 import Environment
+import yaml
 
 
 logger = logging
@@ -17,7 +19,7 @@ class Backup(object):
 
     def searchDump(self, backupPath, listServices, listSettings):
         """
-        This class search service where to perform a dump before to backup them
+        This class search service where to perform a dump before to backup them and grab all setting to perform backup
         :param backupPath: The path where to store the dump
         :param listServices: The list of all services provider by Rancher API
         :param listSettings: The list of settings to identify the service where perform dump and command line to do that.
@@ -38,6 +40,8 @@ class Backup(object):
         logger.debug("listServices: %s", listServices)
         logger.debug("listSettings: %s", listSettings)
 
+
+
         listDump = []
 
         for service in listServices:
@@ -46,55 +50,37 @@ class Backup(object):
 
                     logger.info("Found '%s/%s' to do dumping" % (service['stack']['name'], service['name']))
 
-                    #Replace macro ip
-                    commands = list(setting['commands'])
-                    if 'environments' in setting:
-                        environments = list(setting['environments'])
-                    else:
-                        environments = []
-                    ip = None
+                    #Load template
+                    env = Environment()
+                    template = env.from_string(yaml.dump(setting, Dumper=yaml.Dumper))
+                    context = {}
+
+                    # Get environment variables
+                    if 'environment' in service['launchConfig']:
+                        context["env"] = service['launchConfig']['environment']
+
+                    # Get IP
                     for instance in service['instances']:
                         if instance['state'] == "running":
-                            ip = instance['primaryIpAddress']
-                            logger.debug("Found IP %s", ip)
+                            context["ip"] = instance['primaryIpAddress']
+                            logger.debug("Found IP %s", context["ip"])
                             break
-                    commands = self._replaceMacro('%ip%', ip, commands)
-                    environments = self._replaceMacro("%ip%", ip, environments)
 
-                    # Replace target_dir macro
-                    target_dir = backupPath + "/" + service['stack']['name'] + "/" + service['name']
-                    commands = self._replaceMacro('%target_dir%', target_dir, commands)
-                    environments = self._replaceMacro("%target_dir%", target_dir, environments)
+                    # Get Taget backup
+                    context["target_dir"] = backupPath + "/" + service['stack']['name'] + "/" + service['name']
 
-                    # Replace environment macro
-                    if 'environment' in service['launchConfig']:
-                        for envKey, envValue in service['launchConfig']['environment'].iteritems():
-                            commands = self._replaceMacro("%env_" + envKey + "%", envValue, commands)
-                            environments = self._replaceMacro("%env_" + envKey + "%", envValue, environments)
+                    # Generate template
+                    final_setting = template.render(context)
+                    setting = yaml.load(final_setting)
+                    setting["service"] = service
+                    setting["target_dir"] = context["target_dir"]
+                    if "environments" not in setting:
+                        setting["environments"] = []
+                    if "image" not in setting:
+                        setting["image"] = service['launchConfig']['imageUuid']
 
-
-                    # Check that all macros have been overwrite, then try next template
-                    if self._checkNoMacro(commands) and self._checkNoMacro(environments) and self._checkNoMacro(target_dir):
-
-                        dump = {}
-                        dump['service'] = service
-                        dump['target_dir'] = target_dir
-                        dump['commands'] = commands
-                        dump["environments"] = environments
-                        if "image" in setting:
-                            dump['image'] = setting['image']
-                        else:
-                            dump['image'] = service['launchConfig']['imageUuid']
-                        if "entrypoint" in setting:
-                            dump['entrypoint'] = setting['entrypoint']
-
-
-
-
-                        listDump.append(dump)
-                        break
-                    else:
-                        logger.info("Skip to use template '%s', because we can't overwrite all macros", name)
+                    listDump.append(setting)
+                    break
 
         logger.debug(listDump)
 
@@ -103,7 +89,7 @@ class Backup(object):
 
     def runDump(self, listDump):
         """
-        Permit to perform dump on each services
+        Permit to perform dump on each services with Docker command
         :param listDump: The list of service where to perform the dump
         :type listDump: list
         """
@@ -259,72 +245,54 @@ class Backup(object):
             fp.close()
 
 
-
-
-    def _replaceMacro(self, macro, value, data):
+    def dumpRancherDatabase(self, backupPath, listDatabaseSettings):
         """
-        Permit to replace macro by value on data.
-        :param macro: the macro to replace
-        :param value: the value to replace macro
-        :param data: search macro on it
-        :type macro: str
-        :type value: str
-        :type data: str or list
-        :return str or list the data with value
+        Permit to dump Rancher database
+        :param backupPath: the backup path where store the database dump
+        :param listDatabaseSettings: the database parameters to connect on it
+        :type backupPath: basestring
+        :type listDatabaseSettings: dict
         """
 
-        if macro is None or macro == "":
-            raise KeyError("Macro must be provided")
-        if value is None:
-            raise KeyError("Value must be provided")
-        if data is None:
-            raise KeyError("Data must be provided")
+        if backupPath is None or backupPath == "":
+            raise KeyError("backupPath must be provided")
+        if isinstance(listDatabaseSettings, dict) is False:
+            raise KeyError("listDatabaseSettings must be provided")
 
-        logger.debug("macro: %s", macro)
-        logger.debug("value: %s", value)
-        logger.debug("data: %s", data)
+        if "type" not in listDatabaseSettings:
+            raise KeyError("You must provide the database type")
+        if "host" not in listDatabaseSettings:
+            raise KeyError("You must provide the database host")
+        if "port" not in listDatabaseSettings:
+            raise KeyError("You must provide the database port")
+        if "user" not in listDatabaseSettings:
+            raise KeyError("You must provide the database user")
+        if "password" not in listDatabaseSettings:
+            raise KeyError("You must provide the database password")
+        if "db" not in listDatabaseSettings:
+            raise KeyError("You must provide the database name")
 
-        if isinstance(data, basestring):
-            data = data.replace(macro, value)
+        commandService = Command()
+        target_dir = "%s/database" % (backupPath)
+        image = "mysql:latest"
+        logger.info("Dumping the Rancher database '%s' in '%s'", listDatabaseSettings['db'], target_dir)
 
-        elif isinstance(data, list):
-            for index in range(len(data)):
-                data[index] = data[index].replace(macro, value)
+        if os.path.isdir(target_dir) is False:
+            os.makedirs(target_dir)
+            logger.debug("Create directory '%s'", target_dir)
         else:
-            raise KeyError("Data must be str or list")
+            logger.debug("Directory '%s' already exist", target_dir)
 
-        return data
-
-
-    def _checkNoMacro(self, data):
-        """
-        Permit to replace macro by value on data.
-        :param data: search macro on it
-        :type data: str or list
-        :return true if no macro found, else false
-        """
-
-        if data is None:
-            raise KeyError("Data must be provided")
-
-        logger.debug("data: %s", data)
+        commandService.runCmd("docker pull %s" % image)
+        command = "sh -c 'mysqldump -h %s -p %s -u %s %s > %s/%s.dump'" % (listDatabaseSettings['host'], listDatabaseSettings['port'], listDatabaseSettings['user'], listDatabaseSettings['db'], target_dir, listDatabaseSettings['db'])
+        dockerCmd = "docker run --rm -v %s:%s -e 'MYSQL_PWD=%s' %s %s" % (target_dir, target_dir, listDatabaseSettings['password'], image, command)
+        commandService.runCmd(dockerCmd)
+        logger.info("Dump Rancher database is finished")
 
 
-        if isinstance(data, basestring):
-            if re.search('%[^%]+%', data):
-                return False
-            else:
-                return True
 
-        elif isinstance(data, list):
-            for index in range(len(data)):
-                if re.search('%[^%]+%', data[index]):
-                    return False
 
-            return True
 
-        else:
-            raise KeyError("Data must be str or list")
 
-        return False
+
 

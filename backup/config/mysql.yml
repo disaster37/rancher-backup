@@ -2,6 +2,26 @@ mysql:
   regex: "mysql"
   image: "mysql:latest"
   commands:
-    - "sh -c 'mysqldump -h %ip% -u %env_MYSQL_USER% %env_MYSQL_DATABASE% > %target_dir%/%env_MYSQL_DATABASE%.dump'"
+    {% if env.MYSQL_USER and env.MYSQL_DATABASE %}
+    {# When user, password and database setted when created MySQL #}
+    - "sh -c 'mysqldump -h {{ ip }} -u {{ env.MYSQL_USER }} {{env.MYSQL_DATABASE}} > {{ target_dir }}/{{ env.MYSQL_DATABASE }}.dump'"
+
+    {% elif env.MYSQL_USER and not env.MYSQL_DATABASE %}
+    {# When user, password setted when created MySQL #}
+    - "sh -c 'mysqldump -h {{ ip }} -u {{ env.MYSQL_USER }} --all-databases > {{ target_dir }}/all-databases.dump'"
+
+    {% elif not env.MYSQL_USER and env.MYSQL_DATABASE %}
+    {# When database setted when created MySQL #}
+    - "sh -c 'mysqldump -h {{ ip }} -u root {{env.MYSQL_DATABASE}} > {{ target_dir }}/{{ env.MYSQL_DATABASE }}.dump'"
+
+    {% elif not env.MYSQL_USER and not env.MYSQL_DATABASE %}
+    {# When just root setted when created MySQL #}
+    - "sh -c 'mysqldump -h {{ ip }} -u root --all-databases > {{ target_dir }}/all-databases.dump'"
+
+    {% endif %}
   environments:
-    - MYSQL_PWD:%env_MYSQL_PASSWORD%
+    {% if env.MYSQL_PASSWORD %}
+    - MYSQL_PWD:{{ env.MYSQL_PASSWORD }}
+    {% elif env.MYSQL_ROOT_PASSWORD %}
+    - MYSQL_PWD:{{ env.MYSQL_ROOT_PASSWORD }}
+    {% endif %}

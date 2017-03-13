@@ -26,6 +26,59 @@ def fakeCallApiList(section):
 
         return [service]
 
+    elif section == "setting":
+        listSettings = []
+        setting = {}
+        setting['id'] = "1as!account.by.key.credential.types"
+        setting['type'] = "activeSetting"
+        setting['name'] = "account.by.key.credential.types"
+        setting['activeValue'] = "agentApiKey, apiKey, usernamePassword"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.database"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.database"
+        setting['activeValue'] = "mysql"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.mysql.host"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.mysql.host"
+        setting['activeValue'] = "db"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.mysql.name"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.mysql.name"
+        setting['activeValue'] = "rancher"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.mysql.port"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.mysql.port"
+        setting['activeValue'] = "3306"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.password"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.password"
+        setting['activeValue'] = "password"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.username"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.username"
+        setting['activeValue'] = "rancher"
+        listSettings.append(setting)
+
+        return listSettings
+
     else:
         return None
 
@@ -153,3 +206,20 @@ class RancherTest(unittest.TestCase):
         rancherService.getStacks()
         mock_list.assert_any_call(mock.ANY,'environment')
 
+    @mock.patch.object(Client, 'list', side_effect=fakeCallApiList)
+    @mock.patch.object(Client, '__init__', side_effect=fakeClient)
+    def testGetDatabaseSettings(self, mock_init, mock_list):
+        rancherService = Rancher("https://url", "key", "secret")
+
+        targetListSettings = {
+            "type": "mysql",
+            "host": "db",
+            "db": "rancher",
+            "user": "rancher",
+            "password": "password",
+            "port": "3306"
+        }
+
+        listSettings = rancherService.getDatabaseSettings()
+
+        self.assertEquals(listSettings, targetListSettings)
