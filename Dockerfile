@@ -6,12 +6,13 @@ ENV BACKUP_PATH /backup
 # Add libs & tools
 RUN apt-get update && \
     apt-get install -y --no-install-recommends supervisor python-all python-yaml python-pip duplicity lftp ncftp python-paramiko python-gobject-2 python-boto && \
+    pip install Jinja2 &&\
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Add rancher api
 RUN pip install rancher_metadata
-RUN pip install cattle
+RUN pip install Cattle
 
 # Install go-cron
 RUN curl -sL https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz \
