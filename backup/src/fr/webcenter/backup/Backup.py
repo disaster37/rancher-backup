@@ -284,7 +284,7 @@ class Backup(object):
             logger.debug("Directory '%s' already exist", target_dir)
 
         commandService.runCmd("docker pull %s" % image)
-        command = "sh -c 'mysqldump -h %s -p %s -u %s %s > %s/%s.dump'" % (listDatabaseSettings['host'], listDatabaseSettings['port'], listDatabaseSettings['user'], listDatabaseSettings['db'], target_dir, listDatabaseSettings['db'])
+        command = "sh -c 'mysqldump -h %s -P %s -u %s %s > %s/%s.dump'" % (listDatabaseSettings['host'], listDatabaseSettings['port'], listDatabaseSettings['user'], listDatabaseSettings['db'], target_dir, listDatabaseSettings['db'])
         dockerCmd = "docker run --rm -v %s:%s -e 'MYSQL_PWD=%s' %s %s" % (target_dir, target_dir, listDatabaseSettings['password'], image, command)
         commandService.runCmd(dockerCmd)
         logger.info("Dump Rancher database is finished")

@@ -634,7 +634,7 @@ class BackupTest(unittest.TestCase):
         #print("Call run: %s", mock_runCmd.call_args_list)
 
         mock_runCmd.assert_any_call(mock.ANY, 'docker pull mysql:latest')
-        mock_runCmd.assert_any_call(mock.ANY, "docker run --rm -v /tmp/backup/database:/tmp/backup/database -e 'MYSQL_PWD=password' mysql:latest sh -c 'mysqldump -h db-host -p 3306 -u user rancher > /tmp/backup/database/rancher.dump'")
+        mock_runCmd.assert_any_call(mock.ANY, "docker run --rm -v /tmp/backup/database:/tmp/backup/database -e 'MYSQL_PWD=password' mysql:latest sh -c 'mysqldump -h db-host -P 3306 -u user rancher > /tmp/backup/database/rancher.dump'")
 
 
 
