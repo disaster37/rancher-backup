@@ -5,6 +5,7 @@ import mock
 import os
 import logging
 import sys
+import yaml
 import io
 from mock import mock_open
 import __builtin__
@@ -172,7 +173,8 @@ class BackupTest(unittest.TestCase):
                 'environments': ['MYSQLPASSWORD:{{env.MYSQL_PASSWORD}}']
             }
         }
-        result = backupService.searchDump('/tmp/backup',listServices, listConfig)
+
+        result = backupService.searchDump('/tmp/backup',listServices, yaml.dump(listConfig))
 
         targetResult = [
             {
@@ -211,7 +213,8 @@ class BackupTest(unittest.TestCase):
                 'commands': ['pg_dump -h {{ip}} -U {{env.POSTGRES_USER}} -d {{env.POSTGRES_DB}} -f {{target_dir}}/{{env.POSTGRES_DB}}.dump'],
             }
         }
-        result = backupService.searchDump('/tmp/backup', listServices, listConfig)
+
+        result = backupService.searchDump('/tmp/backup', listServices, yaml.dump(listConfig))
 
         targetResult = [
             {
@@ -234,7 +237,8 @@ class BackupTest(unittest.TestCase):
                 'commands': ['pg_dump -h {{ip}} -U {{env.POSTGRES_USER}} -d {{env.POSTGRES_DB}} -f {{target_dir}}/{{env.POSTGRES_DB}}.dump'],
             }
         }
-        result = backupService.searchDump('/tmp/backup', listServices, listConfig)
+
+        result = backupService.searchDump('/tmp/backup', listServices, yaml.dump(listConfig))
 
         targetResult = [
             {
