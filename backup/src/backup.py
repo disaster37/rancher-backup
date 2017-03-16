@@ -129,7 +129,7 @@ if __name__ == '__main__':
         # Get all services (potential dump)
         if DISABLE_DUMP != "true":
             listServices = rancherService.getServices()
-            listDump = backupService.searchDump(BACKUP_PATH, listServices, listSettings)
+            listDump = backupService.searchDump(BACKUP_PATH, listServices)
             backupService.runDump(listDump)
 
         # We dump the rancher settings
