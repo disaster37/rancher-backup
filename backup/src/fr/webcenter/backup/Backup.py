@@ -47,7 +47,9 @@ class Backup(object):
         template = env.from_string(settings)
 
         for service in listServices:
-            context = {}
+            context = {
+                'env': {}
+            }
             # Get environment variables
             if 'environment' in service['launchConfig']:
                 context["env"] = service['launchConfig']['environment']
