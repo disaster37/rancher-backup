@@ -5,6 +5,7 @@ import logging
 import os
 from fr.webcenter.backup.Command import Command
 from fr.webcenter.backup.Singleton import Singleton
+from fr.webcenter.backup.Config import Config
 from jinja2 import Environment
 import yaml
 
@@ -17,15 +18,13 @@ class Backup(object):
 
     __metaclass__ = Singleton
 
-    def searchDump(self, backupPath, listServices, settings):
+    def searchDump(self, backupPath, listServices):
         """
         This class search service where to perform a dump before to backup them and grab all setting to perform backup
         :param backupPath: The path where to store the dump
         :param listServices: The list of all services provider by Rancher API
-        :param listSettings: The list of settings to identify the service where perform dump and command line to do that.
         :type backupPath: str
         :type listServices: list
-        :type settings: basestring
         :return dict The list of service where to perform dump and docker command line associated to them.
         """
 
@@ -33,44 +32,42 @@ class Backup(object):
             raise KeyError("backupPath must be provided")
         if isinstance(listServices, list) is False:
             raise KeyError("listServices must be a list")
-        if settings is None or settings == "":
-            raise KeyError("settings must be provided")
+
 
         logger.debug("backupPath: %s", backupPath)
         logger.debug("listServices: %s", listServices)
-        logger.debug("settings: %s", settings)
 
-
+        configService = Config()
+        index = configService.getIndex()
 
         listDump = []
-        env = Environment()
-        template = env.from_string(settings)
 
         for service in listServices:
-            context = {
-                'env': {}
-            }
-            # Get environment variables
-            if 'environment' in service['launchConfig']:
-                context["env"] = service['launchConfig']['environment']
-
-            # Get IP
-            for instance in service['instances']:
-                if instance['state'] == "running":
-                    context["ip"] = instance['primaryIpAddress']
-                    logger.debug("Found IP %s", context["ip"])
-                    break
-
-            # Get Taget backup
-            context["target_dir"] = backupPath + "/" + service['stack']['name'] + "/" + service['name']
-
-            listSettings = yaml.load(template.render(context))
-
-
-            for name, setting in listSettings.iteritems():
+            for name, setting in index.iteritems():
                 if re.search(setting['regex'], service['launchConfig']['imageUuid']):
 
                     logger.info("Found '%s/%s' to do dumping" % (service['stack']['name'], service['name']))
+                    template = configService.getTemplate(setting['template'])
+
+                    env = Environment()
+                    template = env.from_string(template)
+                    context = {}
+
+                    # Get environment variables
+                    if 'environment' in service['launchConfig']:
+                        context["env"] = service['launchConfig']['environment']
+
+                    # Get IP
+                    for instance in service['instances']:
+                        if instance['state'] == "running":
+                            context["ip"] = instance['primaryIpAddress']
+                            logger.debug("Found IP %s", context["ip"])
+                            break
+
+                    # Get Taget backup
+                    context["target_dir"] = backupPath + "/" + service['stack']['name'] + "/" + service['name']
+
+                    setting = yaml.load(template.render(context))
 
                     setting["service"] = service
                     setting["target_dir"] = context["target_dir"]

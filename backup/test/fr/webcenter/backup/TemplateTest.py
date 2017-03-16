@@ -9,8 +9,8 @@ class TemplateTest(unittest.TestCase):
 
     def setUp(self):
 
-        configService = Config("../../../../config/*.yml")
-        self.listConfig = configService.getConfig()
+        configService = Config("../../../../config")
+
 
     def testTemplateMysql(self):
 
@@ -75,7 +75,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mysql",
                 'service': listServices[0],
                 'target_dir': '/backup/stack-test/test2',
                 'commands': [
@@ -86,7 +85,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When user, password are setted
@@ -147,7 +146,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mysql",
                 'service': listServices[0],
                 'target_dir': '/backup/stack-test/test2',
                 'commands': [
@@ -158,7 +156,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When root password and database are setted
@@ -219,7 +217,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mysql",
                 'service': listServices[0],
                 'target_dir': '/backup/stack-test/test2',
                 'commands': [
@@ -230,7 +227,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When root password is setted
@@ -290,7 +287,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mysql",
                 'service': listServices[0],
                 'target_dir': '/backup/stack-test/test2',
                 'commands': [
@@ -301,7 +297,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When user, password, root password and database are setted
@@ -364,7 +360,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mysql",
                 'service': listServices[0],
                 'target_dir': '/backup/stack-test/test2',
                 'commands': [
@@ -375,7 +370,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/backup', listServices)
         self.assertEqual(targetResult, result)
 
     def testTemplateMariadb(self):
@@ -440,7 +435,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mariadb",
                 'service': listServices[0],
                 'target_dir': '/backup/stack-test/test2',
                 'commands': [
@@ -451,7 +445,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When user, password are setted
@@ -512,7 +506,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mariadb",
                 'service': listServices[0],
                 'target_dir': '/backup/stack-test/test2',
                 'commands': [
@@ -523,7 +516,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When root password and database are setted
@@ -584,7 +577,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mariadb",
                 'service': listServices[0],
                 'target_dir': '/backup/stack-test/test2',
                 'commands': [
@@ -595,7 +587,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When root password is setted
@@ -655,7 +647,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mariadb",
                 'service': listServices[0],
                 'target_dir': '/backup/stack-test/test2',
                 'commands': [
@@ -666,7 +657,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When user, password, root password and database are setted
@@ -729,7 +720,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mariadb",
                 'service': listServices[0],
                 'target_dir': '/backup/stack-test/test2',
                 'commands': [
@@ -740,7 +730,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/backup', listServices)
         self.assertEqual(targetResult, result)
 
 
@@ -807,7 +797,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "postgres",
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': [
@@ -818,7 +807,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/tmp/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/tmp/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When user, password are setted
@@ -879,7 +868,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "postgres",
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': [
@@ -890,7 +878,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/tmp/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/tmp/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When password and database are setted
@@ -951,7 +939,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "postgres",
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': [
@@ -962,7 +949,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/tmp/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/tmp/backup', listServices)
         self.assertEqual(targetResult, result)
 
         # When password are setted
@@ -1022,7 +1009,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "postgres",
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': [
@@ -1033,7 +1019,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/tmp/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/tmp/backup', listServices)
         self.assertEqual(targetResult, result)
 
     def testTemplateMongodb(self):
@@ -1094,7 +1080,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "mongo",
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': [
@@ -1105,7 +1090,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/tmp/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/tmp/backup', listServices)
         self.assertEqual(targetResult, result)
 
     def testTemplateElasticsearch(self):
@@ -1166,7 +1151,6 @@ class TemplateTest(unittest.TestCase):
 
         targetResult = [
             {
-                'regex': "elasticsearch",
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': [
@@ -1180,7 +1164,7 @@ class TemplateTest(unittest.TestCase):
             }
         ]
 
-        result = backupService.searchDump('/tmp/backup', listServices, self.listConfig)
+        result = backupService.searchDump('/tmp/backup', listServices)
         self.assertEqual(targetResult, result)
 
 

@@ -1,0 +1,3 @@
+mariadb:
+  regex: "mariadb\\:"
+  template: "mariadb.yml"

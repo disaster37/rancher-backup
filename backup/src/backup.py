@@ -106,7 +106,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     try:
-        configService = Config("config/*.yml")
+        configService = Config("config")
     except Exception as e:
         logger.error("Can't load settings or syntax errors : %s", e.message)
         logger.error(traceback.format_exc())
@@ -116,10 +116,6 @@ if __name__ == '__main__':
     backend = os.getenv('BACKEND') + TARGET_PATH
 
     try:
-
-        # Load settings
-        listSettings = configService.getConfig()
-
 
         # We init duplicity
         try:

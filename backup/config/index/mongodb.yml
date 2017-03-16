@@ -1,0 +1,3 @@
+mongodb:
+  regex: "mongo\\:"
+  template: "mongodb.yml"
