@@ -135,8 +135,9 @@ if __name__ == '__main__':
         # We dump the rancher settings
         if DISABLE_DUMP_RANCHER != "true":
             listStacks = rancherService.getStacks()
+            listDatabaseSettings = rancherService.getDatabaseSettings()
             backupService.dumpStacksSettings(BACKUP_PATH + '/rancher', listStacks)
-            backupService.dumpRancherDatabase(BACKUP_PATH + '/rancher')
+            backupService.dumpRancherDatabase(BACKUP_PATH + '/rancher', listDatabaseSettings)
 
         # We run the backup
         backupService.runDuplicity(BACKUP_PATH, backend, BK_FULL_FREQ, BK_KEEP_FULL, BK_KEEP_FULL_CHAIN, VOLUME_SIZE)
