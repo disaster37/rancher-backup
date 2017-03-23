@@ -160,7 +160,9 @@ if __name__ == '__main__':
 
         # We init duplicity
         try:
+            logger.info("Start to initialize Duplicity...")
             backupService.initDuplicity(settings['duplicity']['source-path'], backend)
+            logger.info("Duplicity initialization is finished.")
         except Exception as e:
             logger.info("No backup found (probably the first) or already initialized")
             pass
@@ -168,22 +170,30 @@ if __name__ == '__main__':
 
         # We dump the databases services if needed
         if settings['module']['databases'] is True:
+            logger.info("Start to dump databases...")
             listServices = rancherService.getServices()
             listDump = backupService.searchDump(settings['duplicity']['source-path'], listServices)
             backupService.runDump(listDump)
+            logger.info("The dumping databases is finished.")
 
         # We dump the rancher stack settings if needed
         if settings['module']['stack'] is True:
+            logger.info("Start to export stack as json...")
             listStacks = rancherService.getStacks()
             backupService.dumpStacksSettings(settings['duplicity']['source-path'] + '/rancher', listStacks)
+            logger.info("The exporting of stack if finished")
            
         
         # We dump the rancher database if needed
         if settings['module']['rancher-db'] is True:
+            logger.info("Start to dump Rancher database...")
             backupService.dumpRancherDatabase(settings['duplicity']['source-path'] + '/rancher', rancherDatabaseSettings)
+            logger.info("The Rancher database dumping is finished.")
 
         # We run the backup
+        logger.info("Start to externalize the backup with Duplicity...")
         backupService.runDuplicity(settings['duplicity']['source-path'], backend, settings['duplicity']['full-if-older-than'], settings['duplicity']['remove-all-but-n-full'], settings['duplicity']['remove-all-inc-of-but-n-full'], settings['duplicity']['volsize'], settings['duplicity']['options'])
+        logger.info("The backup exporing is finished.")
 
 
     except Exception as e:

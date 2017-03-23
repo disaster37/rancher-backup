@@ -31,6 +31,7 @@ cat << EOF
                 Image Author: ${CONTAINER_AUHTOR}
                 Image support: ${CONTAINER_SUPPORT}
                 Rancher: http://rancher.com
+                Try Rancher: https://try.rancher.com/
                 
       For french people, you can visit my blog http://blog.webcenter.fr about Docker and Rancher
 
