@@ -74,8 +74,8 @@ class BackupTest(unittest.TestCase):
     @mock.patch.object(Command, 'runCmd', autospec=True)
     def testRunDuplicity(self, mock_runCmd):
         backupService = Backup()
-        backupService.runDuplicity('/backup', 'ftp://user:pass@my-server.com/backup/dump', '1D', '7', '1', '1000')
-        mock_runCmd.assert_any_call(mock.ANY, 'duplicity --volsize 1000 --no-encryption --allow-source-mismatch --full-if-older-than 1D /backup ftp://user:pass@my-server.com/backup/dump')
+        backupService.runDuplicity('/backup', 'ftp://user:pass@my-server.com/backup/dump', '1D', 7, 1, 1000)
+        mock_runCmd.assert_any_call(mock.ANY, 'duplicity  --volsize 1000 --no-encryption --allow-source-mismatch --full-if-older-than 1D /backup ftp://user:pass@my-server.com/backup/dump')
         mock_runCmd.assert_any_call(mock.ANY, 'duplicity remove-all-but-n-full 7 --force --allow-source-mismatch --no-encryption ftp://user:pass@my-server.com/backup/dump')
         mock_runCmd.assert_any_call(mock.ANY, 'duplicity remove-all-inc-of-but-n-full 1 --force --allow-source-mismatch --no-encryption ftp://user:pass@my-server.com/backup/dump')
         mock_runCmd.assert_any_call(mock.ANY, 'duplicity  cleanup --force --no-encryption ftp://user:pass@my-server.com/backup/dump')

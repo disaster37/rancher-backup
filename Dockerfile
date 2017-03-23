@@ -6,9 +6,14 @@ ENV CONFD_PREFIX_KEY="/backup" \
     CONFD_BACKEND="env" \
     CONFD_INTERVAL="60" \
     CONFD_NODES="" \
+    S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     APP_HOME="/opt/backup" \
     APP_DATA="/backup" \
-    USER=kibana
+    USER=kibana \
+    CONTAINER_NAME="rancher-backup" \
+    CONTAINER_AUHTOR="Sebastien LANGOUREAUX <linuxworkgroup@hotmail.com>" \
+    CONTAINER_SUPPORT="https://github.com/disaster37/rancher-backup/issues" \
+    APP_WEB="https://github.com/disaster37/rancher-backup"
 
 
 # Add libs & tools

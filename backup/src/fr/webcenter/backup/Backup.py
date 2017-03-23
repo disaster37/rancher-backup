@@ -151,7 +151,7 @@ class Backup(object):
 
 
 
-    def runDuplicity(self, backupPath, backend, fullBackupFrequency, fullBackupKeep, incrementalBackupChainKeep, volumeSize):
+    def runDuplicity(self, backupPath, backend, fullBackupFrequency, fullBackupKeep, incrementalBackupChainKeep, volumeSize, options=""):
         """
         Permit to backup the dump on remote target
         :param backupPath: the path where dump is stored
@@ -160,11 +160,13 @@ class Backup(object):
         :param fullBackupKeep: how many full backup to keep
         :param incrementalBackupChainKeep: how many incremental backup chain to keep
         :param volumeSize: how many size for each volume
+        :param options: set some duplicity options
         :type backupPath: str
         :type backend: str
         :type fullBackupFrequency: str
         :type incrementalBackupChainKeep: str
         :type volumeSize: str
+        :type options: str
         """
 
         if backupPath is None or backupPath == "":
@@ -173,12 +175,14 @@ class Backup(object):
             raise KeyError("backend must be provided")
         if fullBackupFrequency is None or fullBackupFrequency == "":
             raise KeyError("fullBackupFrequency  must be provided")
-        if fullBackupKeep is None or fullBackupKeep == "":
+        if isinstance(fullBackupKeep, int) is False:
             raise KeyError("fullBackupKeep must be provided")
-        if incrementalBackupChainKeep is None or incrementalBackupChainKeep == "":
+        if isinstance(incrementalBackupChainKeep, int) is False:
             raise KeyError("incrementalBackupChainKeep must be provided")
-        if volumeSize is None or volumeSize == "":
+        if isinstance(volumeSize, int) is False:
             raise KeyError("volumeSize must be provided")
+        if options != "":
+            raise KeyError("Options must be string")
 
         logger.debug("backupPath: %s", backupPath)
         logger.debug("backend: %s", backend)
@@ -186,11 +190,12 @@ class Backup(object):
         logger.debug("fullBackupKeep: %s", fullBackupKeep)
         logger.debug("incrementalBackupChainKeep: %s", incrementalBackupChainKeep)
         logger.debug("volumeSize: %s", volumeSize)
+        logger.debug("options: %s", options)
 
         commandService = Command()
 
         logger.info("Start backup")
-        result = commandService.runCmd("duplicity --volsize %s --no-encryption --allow-source-mismatch --full-if-older-than %s %s %s" % (volumeSize, fullBackupFrequency, backupPath, backend))
+        result = commandService.runCmd("duplicity %s --volsize %s --no-encryption --allow-source-mismatch --full-if-older-than %s %s %s" % (options, volumeSize, fullBackupFrequency, backupPath, backend))
         logger.info(result)
 
         logger.info("Clean old full backup is needed")

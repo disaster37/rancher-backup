@@ -223,3 +223,6 @@ class RancherTest(unittest.TestCase):
         listSettings = rancherService.getDatabaseSettings()
 
         self.assertEquals(listSettings, targetListSettings)
+
+if __name__ == '__main__':
+    unittest.main()

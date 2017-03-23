@@ -19,9 +19,10 @@ duplicity.source-path: "/backup"
 duplicity.target-path: "/backup"
 duplicity.url:
 duplicity.full-if-older-than: "7D"
-duplicity.remove-all-but-n-ful: 3
+duplicity.remove-all-but-n-full: 3
 duplicity.remove-all-inc-of-but-n-full: 1
 duplicity.volsize: 200
+duplicity.options:
 
 # cron
-cron.schedule: {{getv "/cron/schedule"}}
+cron.schedule: '0 0 0 * * *'

@@ -30,3 +30,6 @@ class CommandTest(unittest.TestCase):
         mock_popen.return_value.returncode = 1
         mock_popen.return_value.communicate.return_value = ("output", None)
         self.assertRaises(Exception, commandService.runCmd, "fake cmd")
+        
+if __name__ == '__main__':
+    unittest.main()

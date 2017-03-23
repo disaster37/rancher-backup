@@ -20,6 +20,9 @@ class Config(object):
         """
 
 
+        # Load main settings
+        contendSetting = open(path + '/rancher-backup.yml', 'r').read()
+        Config._settings = yaml.load(contendSetting)
 
         # Load index settings
         contendIndex = ""
@@ -38,7 +41,16 @@ class Config(object):
         Config._path = path
 
 
-
+    def getSettings(self):
+        """
+        Permit to get the settings
+        :return dict: the settings
+        """
+        if isinstance(self._settings, dict) is False:
+            raise Exception("You must init Config first")
+        
+        logger.debug("return: %s", self._settings)
+        return self._settings
 
     def getIndex(self):
         """

@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 
-cat << EOF
+cat << "EOF"
 
                                                            .                           `.
                                                           -d+                          +d.
@@ -23,11 +23,20 @@ cat << EOF
                 :mmmmmmmmmmmmmo                            `mmmmmmmmmmmmmd
                 .hmmmmmmmmmmmd/                             ymmmmmmmmmmmms
                  `````````````                               ````````````
+                 
+EOF
+cat << EOF
+                Name: ${CONTAINER_NAME}
+                Site: ${APP_WEB}
+                Image Author: ${CONTAINER_AUHTOR}
+                Image support: ${CONTAINER_SUPPORT}
+                Rancher: http://rancher.com
+                
+      For french people, you can visit my blog http://blog.webcenter.fr about Docker and Rancher
 
-                Rancher-backup:
-                Docker image support: https://github.com/disaster37/rancher-backup/issues
 
-
+EOF
+cat << "EOF"
       .ooooooo+:`     /ooo-    /ooo:    +oo   -/osyso+- `+oo:    +oo: +ooooooooo`ooooooo+:`
       -mmmhyydmmh-   -mmmmh`   smmmm:   dmm``sdmdyosdmdo`dmmo    hmmo dmmmyyyyyy.mmmhyydmmh-
       -mmm/  -mmmo  `ymdhmmo   smmmmd/  dmm`ymmm-   /mdm.dmmo    hmmo dmmh      -mmm/  -mmmo
@@ -37,7 +46,6 @@ cat << EOF
       -mmm/ `ymmh/smmy////ommm-smm-  :dmmmm`-hmmy/::smmh`dmmo    hmmo dmmd/////+.mmm/ `ymmh+-
       .hhh/  `ohhhhhh.     yhhsshd-   :hhhh` .+yhdddhy+``hhh+    yhh+ yhhhhhhhhd.hhh/  `ohhd:
        ```      ````        ``` ``      ```     `..``     ``      ``   ````````` ```
-       http://rancher.com
-
+       Community ^_^
 
 EOF
