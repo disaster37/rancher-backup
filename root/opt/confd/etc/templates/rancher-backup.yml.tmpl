@@ -37,11 +37,7 @@ rancher:
     host:
 {{end}}
     port: {{getv "/rancher/db/port" "3306"}}
-{{if (exists "/rancher/db/user")}}
-    user: "{{getv "/rancher/db/user"}}"
-{{else}}
-    user:
-{{end}}
+    user: "{{getv "/rancher/db/user" "rancher"}}"
 {{if (exists "/rancher/db/password")}}
     password: "{{getv "/rancher/db/password"}}"
 {{end}}
