@@ -105,7 +105,7 @@ if __name__ == '__main__':
     logger.info("Backend to receive remote backup: %s", settings['duplicity']['url'])
     logger.info("Backup full frequency: %s", settings['duplicity']['full-if-older-than'])
     logger.info("Backup full to keep: %s", settings['duplicity']['remove-all-but-n-full'])
-    logger.info("Backup incremental chain to keep: %s", BK_KEEP_FULL_CHAIN)
+    logger.info("Backup incremental chain to keep: %s", settings['duplicity']['remove-all-inc-of-but-n-full'])
     logger.info("Volume size: %s", settings['duplicity']['volsize'])
 
     # Init services
