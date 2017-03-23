@@ -1,0 +1,27 @@
+# Rancher Api
+rancher.api.url:
+rancher.api.key:
+rancher.api.secret:
+
+rancher.db.host: "localhost"
+rancher.db.port: 3306
+rancher.db.user: "rancher"
+rancher.db.password:
+rancher.db.name: "rancher"
+
+# Backup module
+module.databases: true
+module.stack: true
+module.rancher-db: true
+
+# Duplicity Policy
+duplicity.source-path: "/backup"
+duplicity.target-path: "/backup"
+duplicity.url:
+duplicity.full-if-older-than: "7D"
+duplicity.remove-all-but-n-ful: 3
+duplicity.remove-all-inc-of-but-n-full: 1
+duplicity.volsize: 200
+
+# cron
+cron.schedule: {{getv "/cron/schedule"}}

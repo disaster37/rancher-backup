@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv bash
+
+exec s6-setuidgid backup /usr/local/bin/go-cron "%(ENV_CRON_SCHEDULE)s" /bin/bash -c "python /${APP_HOME}/backup.py"

@@ -1,0 +1,39 @@
+# Rancher Api
+{{ if getenv "CATTLE_URL"}}
+rancher.api.url: "{{getenv "CATTLE_URL"}}"
+{{ else }}
+rancher.api.url: "{{getv "/rancher/api/url"}}"
+{{ end }}
+{{ if getenv "CATTLE_ACCESS_KEY"}}
+rancher.api.key: "{{getenv "CATTLE_ACCESS_KEY"}}"
+{{ else }}
+rancher.api.key: "{{getv "/rancher/api/key"}}"
+{{ end }}
+{{ if getenv "CATTLE_SECRET_KEY"}}
+rancher.api.secret: "{{getenv "CATTLE_SECRET_KEY"}}"
+{{ else }}
+rancher.api.secret: "{{getv "/rancher/api/secret"}}"
+{{ end }}
+rancher.db.host: "{{getv "/rancher/db/host" ""}}"
+rancher.db.port: {{getv "/rancher/db/host" "3306"}}
+rancher.db.user: "{{getv "/rancher/db/user" ""}}"
+rancher.db.password: "{{getv "/rancher/db/password" ""}}"
+rancher.db.name: "{{getv "/rancher/db/name" ""}}"
+
+# Backup module
+module.databases: {{getv "/module/database" "true"}}
+module.stack: {{getv "/module/stack" "true"}}
+module.rancher-db: {{getv "/module/rancher-db" "true"}}
+
+# Duplicity Policy
+duplicity.source-path: "{{getv "/duplicity/source-path" "/backup"}}"
+duplicity.target-path: "{{getv "/duplicity/target-path" "/backup"}}"
+duplicity.url: "{{getv "/duplicity/url"}}"
+duplicity.backend-options: "{{getv "duplicity/backend-options" ""}}"
+duplicity.full-if-older-than: "{{getv "/duplicity/full-if-older-than" "7D"}}"
+duplicity.remove-all-but-n-ful: {{getv "/duplicity/remove-all-but-n-ful" "3"}}
+duplicity.remove-all-inc-of-but-n-full: {{getv "/duplicity/remove-all-inc-of-but-n-full" "1"}}
+duplicity.volsize: {{getv "/duplicity/volsize" "200"}}
+
+# cron
+cron.schedule: "{{getv "/cron/schedule" "0 0 0 * * *"}}"
