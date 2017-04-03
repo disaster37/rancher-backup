@@ -2,4 +2,4 @@ mongo:
   regex: "mongo"
   image: "mongo:latest"
   commands:
-    - "mongodump --host %ip% --out %target_dir%"
+    - "mongodump --host %ip% -u %env_MONGO_USER% -p %env_MONGO_PASS% --out %target_dir%"
