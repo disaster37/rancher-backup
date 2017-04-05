@@ -46,8 +46,8 @@ class Rancher(object):
                 logger.debug("Found service %s", service["name"])
 
                 # We add the stack associated to it
-                if 'environment' in service['links']:
-                    service['stack'] = self._client._get(service['links']['environment'])
+                if 'stack' in service['links']:
+                    service['stack'] = self._client._get(service['links']['stack'])
                     logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
                 else:
                     logger.debug("No stack for service %s", service["name"])
@@ -76,17 +76,17 @@ class Rancher(object):
         :return list: the list of Rancher stack
         """
 
-        listEnvironments = self._client.list('environment')
-        targetListEnvironment = []
-        for environment in listEnvironments:
-            logger.debug("Grab setting for stack %s", environment['name'])
-            environment['settings'] = self._client.action(environment, 'exportconfig')
-            targetListEnvironment.append(environment)
+        listStacks = self._client.list('stack')
+        targetListStacks = []
+        for stack in listStacks:
+            logger.debug("Grab setting for stack %s", stack['name'])
+            stack['settings'] = self._client.action(stack, 'exportconfig')
+            targetListStacks.append(stack)
 
 
-        logger.debug("Return: %s", targetListEnvironment)
+        logger.debug("Return: %s", targetListStacks)
 
-        return targetListEnvironment
+        return targetListStacks
 
 
     def getDatabaseSettings(self):

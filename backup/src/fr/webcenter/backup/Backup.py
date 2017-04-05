@@ -151,7 +151,7 @@ class Backup(object):
 
 
 
-    def runDuplicity(self, backupPath, backend, fullBackupFrequency, fullBackupKeep, incrementalBackupChainKeep, volumeSize, options=""):
+    def runDuplicity(self, backupPath, backend, fullBackupFrequency, fullBackupKeep, incrementalBackupChainKeep, volumeSize, options=None):
         """
         Permit to backup the dump on remote target
         :param backupPath: the path where dump is stored
@@ -181,8 +181,10 @@ class Backup(object):
             raise KeyError("incrementalBackupChainKeep must be provided")
         if isinstance(volumeSize, int) is False:
             raise KeyError("volumeSize must be provided")
-        if options != "":
-            raise KeyError("Options must be string")
+        if options is None:
+            options = ""
+        if isinstance(options, basestring) is False:
+            raise KeyError("Options mus be a None or string")
 
         logger.debug("backupPath: %s", backupPath)
         logger.debug("backend: %s", backend)
@@ -271,13 +273,13 @@ class Backup(object):
             raise KeyError("You must provide the database user")
         if "password" not in listDatabaseSettings:
             raise KeyError("You must provide the database password")
-        if "db" not in listDatabaseSettings:
+        if "name" not in listDatabaseSettings:
             raise KeyError("You must provide the database name")
 
         commandService = Command()
         target_dir = "%s/database" % (backupPath)
         image = "mysql:latest"
-        logger.info("Dumping the Rancher database '%s' in '%s'", listDatabaseSettings['db'], target_dir)
+        logger.info("Dumping the Rancher database '%s' in '%s'", listDatabaseSettings['name'], target_dir)
 
         if os.path.isdir(target_dir) is False:
             os.makedirs(target_dir)
@@ -286,7 +288,7 @@ class Backup(object):
             logger.debug("Directory '%s' already exist", target_dir)
 
         commandService.runCmd("docker pull %s" % image)
-        command = "sh -c 'mysqldump -h %s -P %s -u %s %s > %s/%s.dump'" % (listDatabaseSettings['host'], listDatabaseSettings['port'], listDatabaseSettings['user'], listDatabaseSettings['db'], target_dir, listDatabaseSettings['db'])
+        command = "sh -c 'mysqldump -h %s -P %s -u %s %s > %s/%s.dump'" % (listDatabaseSettings['host'], listDatabaseSettings['port'], listDatabaseSettings['user'], listDatabaseSettings['name'], target_dir, listDatabaseSettings['name'])
         dockerCmd = "docker run --rm -v %s:%s -e 'MYSQL_PWD=%s' %s %s" % (target_dir, target_dir, listDatabaseSettings['password'], image, command)
         commandService.runCmd(dockerCmd)
         logger.info("Dump Rancher database is finished")

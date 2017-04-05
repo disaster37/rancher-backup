@@ -1,46 +1,46 @@
 # Rancher Api
 rancher:
   api:
-{{ if getenv "CATTLE_URL"}}
+{{- if getenv "CATTLE_URL"}}
     url: "{{getenv "CATTLE_URL"}}"
-{{ else }}
-    {{if (exists "/rancher/api/url")}}
+{{- else }}
+    {{- if (exists "/rancher/api/url")}}
     url: "{{getv "/rancher/api/url" ""}}"
-    {{else}}
+    {{- else}}
     url:
-    {{end}}
-{{ end }}
-{{ if getenv "CATTLE_ACCESS_KEY"}}
+    {{- end}}
+{{- end }}
+{{- if getenv "CATTLE_ACCESS_KEY"}}
     key: "{{getenv "CATTLE_ACCESS_KEY"}}"
-{{ else }}
-    {{if (exists "/rancher/api/key")}}
+{{- else }}
+    {{- if (exists "/rancher/api/key")}}
     key: "{{getv "/rancher/api/key" ""}}"
-    {{else}}
+    {{- else}}
     key:
-    {{end}}
-{{ end }}
-{{ if getenv "CATTLE_SECRET_KEY"}}
+    {{- end}}
+{{- end }}
+{{- if getenv "CATTLE_SECRET_KEY"}}
     secret: "{{getenv "CATTLE_SECRET_KEY"}}"
-{{ else }}
-    {{if (exists "/rancher/api/secret")}}
+{{- else }}
+    {{- if (exists "/rancher/api/secret")}}
     secret: "{{getv "/rancher/api/secret" ""}}"
-    {{else}}
+    {{- else}}
     secret:   
-    {{end}}
-{{ end }}
+    {{- end}}
+{{- end }}
 
 # Rancher database
   db:
-{{if (exists "/rancher/db/host")}}
+{{- if (exists "/rancher/db/host")}}
     host: "{{getv "/rancher/db/host"}}"
-{{else}}
+{{- else}}
     host:
-{{end}}
+{{- end}}
     port: {{getv "/rancher/db/port" "3306"}}
     user: "{{getv "/rancher/db/user" "rancher"}}"
-{{if (exists "/rancher/db/password")}}
+{{- if (exists "/rancher/db/password")}}
     password: "{{getv "/rancher/db/password"}}"
-{{end}}
+{{- end}}
     name: "{{getv "/rancher/db/name" "rancher"}}"
 
 # Backup module
@@ -52,17 +52,17 @@ module:
 # Duplicity Policy
 duplicity:
   source-path: "{{getv "/duplicity/source-path" "/backup"}}"
-  target-path: "{{getv "/duplicity/target-path" "/backup"}}"
-{{if (exists "/duplicity/url")}}
+  target-path: "{{getv "/duplicity/target-path" "/"}}"
+{{- if (exists "/duplicity/url")}}
   url: "{{getv "/duplicity/url"}}"
-{{else}}
+{{- else}}
   url:
-{{end}}
-{{if (exists "duplicity/options")}}
+{{- end}}
+{{- if (exists "duplicity/options")}}
   options: "{{getv "duplicity/options"}}"
-{{else}}
+{{- else}}
   options:
-{{end}}
+{{- end}}
   full-if-older-than: "{{getv "/duplicity/full-if-older-than" "7D"}}"
   remove-all-but-n-full: {{getv "/duplicity/remove-all-but-n-full" "3"}}
   remove-all-inc-of-but-n-full: {{getv "/duplicity/remove-all-inc-of-but-n-full" "1"}}

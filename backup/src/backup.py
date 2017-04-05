@@ -119,7 +119,7 @@ def getAndcheckAllParameters():
         raise Exception("Somthing wrong on your config file: %s", e.message)
 
     
-    logger.info("Rancher URL: %s", settings['rancher']['api']['url'])
+    logger.info("Rancher URL: %s", settings['rancher']['api']['url'][:-2] + "v2-beta")
     logger.info("Rancher key: %s", settings['rancher']['api']['key'])
     logger.info("Rancher secret: XXXX")
     logger.info("Backup path: %s", settings['duplicity']['source-path'])
@@ -132,11 +132,15 @@ def getAndcheckAllParameters():
     
     # Init services
     try:
-        rancherService = Rancher(settings['rancher']['api']['url'], settings['rancher']['api']['key'], settings['rancher']['api']['secret'])
+        rancherService = Rancher(settings['rancher']['api']['url'][:-2] + "v2-beta", settings['rancher']['api']['key'], settings['rancher']['api']['secret'])
     except Exception as e:
         raise Exception("Can't connect to rancher API : %s \n%s", e.message, traceback.format_exc())
     
-    rancherDatabaseSettings = rancherService.getDatabaseSettings()
+    try:
+        rancherDatabaseSettings = rancherService.getDatabaseSettings()
+    except Exception as e:
+        rancherDatabaseSettings = {}
+        pass
     
     # Check database settings
     try:

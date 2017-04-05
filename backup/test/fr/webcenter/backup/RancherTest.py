@@ -21,7 +21,7 @@ def fakeCallApiList(section):
             'PGPASSWORD': 'pass'
         }
         service['links'] = {}
-        service['links']['environment'] = 'https://fake/environment'
+        service['links']['stack'] = 'https://fake/stack'
         service['links']['instances'] = 'https://fake/instances'
 
         return [service]
@@ -83,10 +83,10 @@ def fakeCallApiList(section):
         return None
 
 def fakeCallApiGet(url):
-    if url == "https://fake/environment":
-        environment = {}
-        environment['name'] = 'stack-test'
-        return environment
+    if url == "https://fake/stack":
+        stack = {}
+        stack['name'] = 'stack-test'
+        return stack
 
     if url == "https://fake/hosts":
         host = {}
@@ -149,7 +149,7 @@ class RancherTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -204,7 +204,7 @@ class RancherTest(unittest.TestCase):
 
         rancherService = Rancher("https://url", "key", "secret")
         rancherService.getStacks()
-        mock_list.assert_any_call(mock.ANY,'environment')
+        mock_list.assert_any_call(mock.ANY,'stack')
 
     @mock.patch.object(Client, 'list', side_effect=fakeCallApiList)
     @mock.patch.object(Client, '__init__', side_effect=fakeClient)

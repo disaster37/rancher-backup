@@ -1,4 +1,4 @@
-FROM python:2-alpine
+FROM alpine:3.5
 MAINTAINER Sebastien LANGOUREAUX <linuxworkgroup@hotmail.com>
 
 # Application settings
@@ -10,6 +10,7 @@ ENV CONFD_PREFIX_KEY="/backup" \
     APP_HOME="/opt/backup" \
     APP_DATA="/backup" \
     USER=backup \
+    LANG=C.UTF-8 \
     CONTAINER_NAME="rancher-backup" \
     CONTAINER_AUHTOR="Sebastien LANGOUREAUX <linuxworkgroup@hotmail.com>" \
     CONTAINER_SUPPORT="https://github.com/disaster37/rancher-backup/issues" \
@@ -19,7 +20,7 @@ ENV CONFD_PREFIX_KEY="/backup" \
 # Add libs & tools
 COPY backup/requirements.txt /${APP_HOME}/
 RUN apk update && \
-    apk add bash tar curl docker duplicity lftp ncftp py-paramiko py-gobject py-boto &&\
+    apk add python2 py-pip bash tar curl docker duplicity lftp ncftp py-paramiko py-gobject py-boto py-lockfile ca-certificates librsync py-cryptography py-cffi  &&\
     pip install --upgrade pip &&\
     pip install -r "${APP_HOME}/requirements.txt" &&\
     rm /var/cache/apk/*
