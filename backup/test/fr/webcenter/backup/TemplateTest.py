@@ -31,7 +31,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -102,7 +102,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -173,7 +173,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -243,7 +243,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -316,7 +316,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -391,7 +391,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -462,7 +462,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -533,7 +533,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -603,7 +603,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -676,7 +676,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -753,7 +753,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -824,7 +824,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -895,7 +895,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -965,7 +965,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -1025,6 +1025,7 @@ class TemplateTest(unittest.TestCase):
     def testTemplateMongodb(self):
         backupService = Backup()
 
+        # When no user and password
         listServices = [
             {
                 'type': 'service',
@@ -1036,7 +1037,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -1092,6 +1093,78 @@ class TemplateTest(unittest.TestCase):
 
         result = backupService.searchDump('/tmp/backup', listServices)
         self.assertEqual(targetResult, result)
+        
+        
+        # When user and password
+        listServices = [
+            {
+                'type': 'service',
+                'name': 'test',
+                'state': 'active',
+                'launchConfig': {
+                    'imageUuid': 'mongo:latest',
+                    'environment': {
+                        'MONGO_USER': 'user',
+                        'MONGO_PASS': 'pass'
+                    }
+                },
+                'links': {
+                    'stack': 'https://fake/stack',
+                    'instances': 'https://fake/instances',
+                },
+                'stack': {
+                    'name': 'stack-test'
+                },
+                'instances': [
+                    {
+                        'state': 'disabled',
+                        'primaryIpAddress': '10.0.0.1',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.0.0.2',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.0.0.3',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    }
+
+                ],
+            }
+        ]
+
+        targetResult = [
+            {
+                'service': listServices[0],
+                'target_dir': '/tmp/backup/stack-test/test',
+                'commands': [
+                    'mongodump --host 10.0.0.2 -u user -p pass --out /tmp/backup/stack-test/test'
+                ],
+                'environments': [],
+                'image': 'mongo:latest'
+            }
+        ]
+
+        result = backupService.searchDump('/tmp/backup', listServices)
+        self.assertEqual(targetResult, result)
 
     def testTemplateElasticsearch(self):
         backupService = Backup()
@@ -1107,7 +1180,7 @@ class TemplateTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {

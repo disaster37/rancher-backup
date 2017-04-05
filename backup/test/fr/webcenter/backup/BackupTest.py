@@ -587,7 +587,7 @@ class BackupTest(unittest.TestCase):
             "type": "mysql",
             "host": "db-host",
             "port": "3306",
-            "db": "rancher",
+            "name": "rancher",
             "user": "user",
             "password": "password"
         }
