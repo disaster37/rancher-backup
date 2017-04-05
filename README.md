@@ -4,8 +4,8 @@ It's a general purpose to solve backup matter on Rancher.
 The goal, it's to have ability to use docker command to perform dump (when needed) before to start external backup with duplicity.
 
 To do the job in easiest way, we use the power of Rancher API to discover the service witch must be dumped before to start the backup.
-We use some settings files on `/app/config` to explain how discover the service witch must be dumped and how to do that.
-Next, all the contains of `BACKUP_PATH` (default is /backup) is backuped on remote backend with duplicity. So you can map your data volume on this container to backup it in the same time.
+We use some settings files on `/opt/backup/config` to explain how discover the service witch must be dumped and how to do that.
+Next, all the contains of `BACKUP_duplicity_source-path` (default is /backup) is backuped on remote backend with duplicity. So you can map your data volume on this container to backup it in the same time.
 
 You are welcome to contribute on github to extend the supported service.
 
