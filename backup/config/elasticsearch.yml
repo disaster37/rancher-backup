@@ -1,8 +1,0 @@
-elasticsearch:
-  regex: "elasticsearch"
-  image: "taskrabbit/elasticsearch-dump:latest"
-  commands:
-    - "-c 'rm -rf %target_dir%/*.json'"
-    - "-c 'elasticdump --input=http://%ip%:9200/ --output=%target_dir%/dump_mapping.json --type=mapping'"
-    - "-c 'elasticdump --input=http://%ip%:9200/ --output=%target_dir%/dump_data.json --type=data'"
-  entrypoint: "/bin/sh"

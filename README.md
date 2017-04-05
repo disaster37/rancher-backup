@@ -4,8 +4,8 @@ It's a general purpose to solve backup matter on Rancher.
 The goal, it's to have ability to use docker command to perform dump (when needed) before to start external backup with duplicity.
 
 To do the job in easiest way, we use the power of Rancher API to discover the service witch must be dumped before to start the backup.
-We use some settings files on `/app/config` to explain how discover the service witch must be dumped and how to do that.
-Next, all the contains of `BACKUP_PATH` (default is /backup) is backuped on remote backend with duplicity. So you can map your data volume on this container to backup it in the same time.
+We use some settings files on `/opt/backup/config` to explain how discover the service witch must be dumped and how to do that.
+Next, all the contains of `BACKUP_duplicity_source-path` (default is /backup) is backuped on remote backend with duplicity. So you can map your data volume on this container to backup it in the same time.
 
 You are welcome to contribute on github to extend the supported service.
 
@@ -37,47 +37,97 @@ When we detect Cassandra service, we send command to Cassandra to ask it to perf
 If you should to not dump a particular service witch is supported, you can add label on service `backup.disable=true`
 
 ## Backup options
+
+> We use [Confd](https://github.com/yunify/confd) to configure backup options.
+
+Confd settings:
+- **CONFD_PREFIX_KEY**: The prefix key use by Confd. Default is `/backup`
+- **CONFD_BACKEND**: The backend used by Confd. Default is `env`
+- **CONFD_NODES**: The nodes to use to access on backend. Defaukt is empty. 
+
 The following options permit to set the backup policy :
-- `CRON_SCHEDULE`: when you should start backup (incremental if full is not needed). For example, to start backup each day set `0 0 0 * * *`
-- `BACKEND`: this is the target URL to externalize the backup. For example, to use FTP as external backup set `ftp://login@my-ftp.com` and add environment variable `FTP_PASSWORD`. For Amazon S3, set `s3://host[:port]/bucket_name[/prefix]`. Read the ducplicity man for [all supported backend](http://duplicity.nongnu.org/duplicity.1.html#sect7). There are no default value.
-- `TARGET_PATH`: The path were store backup on local and remote. The default value is `/backup`.
-- `BK_FULL_FREQ`: The frequency when you should make a full backup. For example, if you should make a full backup each 7 days, set `7D`. The default value is `7D`.
-- `BK_KEEP_FULL`: How many full backup you should to keep. For example, to keep 3 full backup set `3`. The default value is `3`.
-- `BK_KEEP_FULL_CHAIN`: The number of intermediate incremental backup you should keep with the full backup. For example, if you should keep only the incremental backend after the last full backup set `1`. The default value is set to `1`.
-- `VOLUME_SIZE`: The volume size to store the backup (in MB). The default value is `25`.
+- **BACKUP_cron_schedule**: when you should start backup. For example, to start backup each day set `0 0 0 * * *`. Default is `0 0 0 * * *`
+- **BACKUP_module_database**: Allow to auto discover service and perform dump (when Know) before start backup with Duplicity. Default is `true`.
+- **BACKUP_module_stack**: Allow to perform export of each stack before start backup with Duplicity. Default is `true`.
+- **BACKUP_module_rancher-db**: Allow to perform a dump of Rancher database befaire start backup with Duplicity. Default is `true`.
+- **BACKUP_duplicity_source-path**: The path to backup with Duplicity. Default is `/backup`.
+- **BACKUP_duplicity_target-path**: The path were store backup on remote backend. The default value is `/`.
+- **BACKUP_duplicity_url**: this is the target URL to externalize the backup. For example, to use FTP as external backup set `ftp://login@my-ftp.com` and add environment variable `FTP_PASSWORD`. For Amazon S3, set `s3://host[:port]/bucket_name[/prefix]`. Read the ducplicity man for [all supported backend](http://duplicity.nongnu.org/duplicity.1.html#sect7). There are no default value.
+- **BACKUP_duplicity_options**: List of options added when start backup with Duplicity. Is usefull to add SSH options. There are no default value.
+- **BACKUP_duplicity_full-if-older-than**: The frequency when you should make a full backup. For example, if you should make a full backup each 7 days, set `7D`. The default value is `7D`.
+- **BACKUP_duplicity_remove-all-but-n-full**: How many full backup you should to keep. For example, to keep 3 full backup set `3`. The default value is `3`.
+- **BACKUP_duplicity_remove-all-inc-of-but-n-full**: The number of intermediate incremental backup you should keep with the full backup. For example, if you should keep only the incremental backend after the last full backup set `1`. The default value is set to `1`.
+- **BACKUP_duplicity_volsize**: The volume size to store the backup (in MB). The default value is `200`.
+- **BACKUP_rancher_db_host**: The rancher database IP/DNS (needed if you should perform Rancher database dump). No default value.
+- **BACKUP_rancher_db_port**: The rancher database port (needed if you should perform Rancher database dump). Default is `3306`.
+- **BACKUP_rancher_db_user**: The rancher database user (needed if you should perform Rancher database dump). Default is `rancher`.
+- **BACKUP_rancher_db_password**: The rancher database password (needed if you should perform Rancher database dump). No default value.
+- **BACKUP_rancher_db_name**: The rancher database name (needed if you should perform Rancher database dump). Default is `rancher`.
 
 To set the Rancher API connection prefer to add special label that generate access on the flow:
 - `io.rancher.container.create_agent=true`
 - `io.rancher.container.agent.role=environment`
 
 Or you can define them manually :
-- `CATTLE_URL`: the API URL with your project ID
-- `CATTLE_ACCESS_KEY`: the API key
-- `CATTLE_SECRET_KEY`: the API secret key
+- **BACKUP_rancher_api_url**: the API URL with your project ID
+- **BACKUP_rancher_api_key**: the API key
+- **BACKUP_rancher_api_secret**: the API secret key
 
 ## How to extend this
 
-You need to dump another service before to save it (note yet supported) ? Just clone this repository and add the file in `backup/config/new-service.yml`
+You need to dump another service before to save it (note yet supported) ? Just clone this repository and 2 files per service:
+- `backup/index/service.yml`: contain the regex to identifiy the new service
+- `backup/template/service.yml`: caontain the instruction about how dump the new service. We use Jinja2 templating.
 
 Then, add your new entry (sample with MySQL):
 
+backup/index/mysql.yml
 ```yaml
 mysql:
   regex: "mysql"
-  image: "mysql:latest"
-  commands:
-    - "mysqldump -h %ip% -u %env_MYSQL_USER% %env_MYSQL_DATABASE% > %target_dir%/%env_MYSQL_DATABASE%.dump"
-  environment:
-    - MYSQL_PWD:%env_MYSQL_PASSWORD%
+  template: "mysql.yml"
 ```
 
 Few explanation:
-- `regex`: It's the regex to discover service witch must be dumped. This regex is applied to image docker used in service.
-- `image`: It's the docker image to use to run the dump (generaly the latest tag). If you not add image entry, it use the service docker image.
-- `commands`: It's the list of commands to launch on container to perform the dump
-- `environment`: It's the list of environment variables you need to perform the dump
+- **regex**: It's the regex to discover service witch must be dumped. This regex is applied to image docker used in service.
+- **template**: It's the template to use to perform MySQL dump.
 
-There are few macro you can use in command and in environment section:
-- `%ip%`: the IP to join the container to perform a remote dump
-- `%env_SERVICE_ENV%`: Take the value of service environment called `SERVICE_ENV`
-- `%target_dir%`: It's the path where store the dump (`BACKUP_PATH/STACK_NAME/SERVICE_NAME`)
+backup/template/mysql.yml
+```yaml
+image: "mysql:latest"
+commands:
+  {% if env.MYSQL_USER and env.MYSQL_DATABASE %}
+  {# When user, password and database setted #}
+  - "sh -c 'mysqldump -h {{ ip }} -u {{ env.MYSQL_USER }} {{env.MYSQL_DATABASE}} > {{ target_dir }}/{{ env.MYSQL_DATABASE }}.dump'"
+
+  {% elif env.MYSQL_USER and not env.MYSQL_DATABASE %}
+  {# When user, password setted #}
+  - "sh -c 'mysqldump -h {{ ip }} -u {{ env.MYSQL_USER }} --all-databases > {{ target_dir }}/all-databases.dump'"
+
+  {% elif not env.MYSQL_USER and env.MYSQL_DATABASE %}
+  {# When database setted #}
+  - "sh -c 'mysqldump -h {{ ip }} -u root {{env.MYSQL_DATABASE}} > {{ target_dir }}/{{ env.MYSQL_DATABASE }}.dump'"
+
+  {% elif not env.MYSQL_USER and not env.MYSQL_DATABASE %}
+  {# When just root setted #}
+  - "sh -c 'mysqldump -h {{ ip }} -u root --all-databases > {{ target_dir }}/all-databases.dump'"
+
+  {% endif %}
+environments:
+  {% if env.MYSQL_PASSWORD %}
+  - MYSQL_PWD:{{ env.MYSQL_PASSWORD }}
+  {% elif env.MYSQL_ROOT_PASSWORD %}
+  - MYSQL_PWD:{{ env.MYSQL_ROOT_PASSWORD }}
+  {% endif %}
+```
+
+Few explanation:
+- **template**: It's the template to use to perform MySQL dump.
+- **image**: It's the docker image to use to run the dump (generaly the latest tag). If you not add image entry, it use the service docker image.
+- **commands**: It's the list of commands to launch on container to perform the dump
+- **environments**: It's the list of environment variables you need to perform the dump
+
+We use [Jinja2 templating](http://jinja.pocoo.org/docs/2.9/templates/) and we add some variable that you can use in template:
+- `{{ip}}`: the IP to join the container to perform a remote dump
+- `{{env.SERVICE_ENV}}`: Take the value of service environment called `SERVICE_ENV`
+- `{{target_dir}}`: It's the path where store the dump (`BACKUP_PATH/dump/STACK_NAME/SERVICE_NAME`)

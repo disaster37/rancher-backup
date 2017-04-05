@@ -3,29 +3,67 @@ __author__ = 'disaster'
 import unittest
 import mock
 import os
+import logging
+import sys
+import yaml
 import io
 from mock import mock_open
-import fr.webcenter.backup.Backup
 import __builtin__
 from fr.webcenter.backup.Backup import Backup
 from fr.webcenter.backup.Command import Command
+from fr.webcenter.backup.Config import Config
 
+logger = logging.getLogger()
+logger.level = logging.DEBUG
+stream_handler = logging.StreamHandler(sys.stdout)
+logger.addHandler(stream_handler)
 
 def fakeInitDuplicity(cmd):
     return cmd
 
+
+def fakeSetting(path=None):
+
+    Config._index =  {
+        'postgresql': {
+            'regex': 'postgres',
+            'template': 'postgres.yml'
+        }
+    }
+
+    Config._templates = {
+        path + '/templates/postgres.yml': """
+        image: "postgres:latest"
+        commands:
+          {% if env.POSTGRES_USER and env.POSTGRES_DB %}
+          {# When user, password and database setted  #}
+          - "pg_dump -h {{ ip }} -U {{ env.POSTGRES_USER }} -d {{ env.POSTGRES_DB }} -f {{ target_dir }}/{{ env.POSTGRES_DB }}.dump"
+
+          {% elif env.POSTGRES_USER and not env.POSTGRES_DB %}
+          {# When user, password setted  #}
+          - "pg_dump -h {{ ip }} -U {{ env.POSTGRES_USER }} -d {{ env.POSTGRES_USER }} -f {{ target_dir }}/{{ env.POSTGRES_USER }}.dump"
+
+          {% elif not env.POSTGRES_USER and env.POSTGRES_DB %}
+          {# When database setted, password #}
+          - "pg_dump -h {{ ip }} -U postgres -d {{ env.POSTGRES_DB }} -f {{ target_dir }}/{{ env.POSTGRES_DB }}.dump"
+
+          {% elif not env.POSTGRES_USER and not env.POSTGRES_DB %}
+          {# When just root setted #}
+          - "pg_dumpall -h {{ ip }} -U postgres --clean -f {{ target_dir }}/all-databases.dump"
+
+          {% endif %}
+
+        environments:
+          {% if env.POSTGRES_PASSWORD %}
+          - PGPASSWORD:{{ env.POSTGRES_PASSWORD}}
+          {% endif %}
+        """
+    }
+
+    Config._path = path
+
 class BackupTest(unittest.TestCase):
 
-    def test_replaceMacro(self):
-        backupService = Backup()
-
-        # We a list
-        result = backupService._replaceMacro("%ip%", "10.0.0.1", "ip: %ip%")
-        self.assertEqual("ip: 10.0.0.1", result)
-
-        # With a list
-        result = backupService._replaceMacro("%ip%", "10.0.0.1", ["ip: %ip%", "ddd: dfdf", "test: %ip% sdsd"])
-        self.assertEqual(["ip: 10.0.0.1", "ddd: dfdf", "test: 10.0.0.1 sdsd"], result)
 
     @mock.patch.object(Command, 'runCmd', autospec=True)
     def testInitDuplicity(self, mock_runCmd):
@@ -36,18 +74,20 @@ class BackupTest(unittest.TestCase):
     @mock.patch.object(Command, 'runCmd', autospec=True)
     def testRunDuplicity(self, mock_runCmd):
         backupService = Backup()
-        backupService.runDuplicity('/backup', 'ftp://user:pass@my-server.com/backup/dump', '1D', '7', '1', '1000')
-        mock_runCmd.assert_any_call(mock.ANY, 'duplicity --volsize 1000 --no-encryption --allow-source-mismatch --full-if-older-than 1D /backup ftp://user:pass@my-server.com/backup/dump')
+        backupService.runDuplicity('/backup', 'ftp://user:pass@my-server.com/backup/dump', '1D', 7, 1, 1000)
+        mock_runCmd.assert_any_call(mock.ANY, 'duplicity  --volsize 1000 --no-encryption --allow-source-mismatch --full-if-older-than 1D /backup ftp://user:pass@my-server.com/backup/dump')
         mock_runCmd.assert_any_call(mock.ANY, 'duplicity remove-all-but-n-full 7 --force --allow-source-mismatch --no-encryption ftp://user:pass@my-server.com/backup/dump')
         mock_runCmd.assert_any_call(mock.ANY, 'duplicity remove-all-inc-of-but-n-full 1 --force --allow-source-mismatch --no-encryption ftp://user:pass@my-server.com/backup/dump')
         mock_runCmd.assert_any_call(mock.ANY, 'duplicity  cleanup --force --no-encryption ftp://user:pass@my-server.com/backup/dump')
 
-
-    def testSearchDump(self):
+    @mock.patch.object(Config, '__init__', side_effect=fakeSetting)
+    def testSearchDump(self, mock_config):
         backupService = Backup()
+        Config('/fake/path')
 
         listServices = [
             {
+                'type': 'service',
                 'name': 'test',
                 'state': 'active',
                 'launchConfig': {
@@ -100,13 +140,14 @@ class BackupTest(unittest.TestCase):
                 ],
             },
             {
+                'type': 'service',
                 'name': 'test2',
                 'state': 'active',
                 'launchConfig': {
                     'imageUuid': 'test/mysql:latest',
                     'environment': {
                         'MYSQL_USER': 'user',
-                        'MYSQL_DB': 'test',
+                        'MYSQL_DATABASE': 'test',
                         'MYSQL_PASSWORD': 'pass'
                     }
                 },
@@ -153,96 +194,26 @@ class BackupTest(unittest.TestCase):
             }
         ]
 
-        # With environment on settings
-        listConfig = {
-            'postgres': {
-                'regex': "postgres",
-                'image': 'postgres:latest',
-                'commands': [
-                    'pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump',
-                    'fake_cmd2 -h %ip% -U %env_POSTGRES_USER%'
-                ],
-                'entrypoint': "sh -c",
-                'environment': ['PGPASSWORD:%env_POSTGRES_PASSWORD%']
-            },
-            'mysql': {
-                'regex': "mysql",
-                'image': 'mysql:latest',
-                'commands': [
-                    'mysqldump -h %ip% -U %env_MYSQL_USER% -d %env_MYSQL_DB% -f %target_dir%/%env_MYSQL_DB%.dump',
-                    'fake_cmd2 -h %ip% -U %env_MYSQL_USER%'
-                ],
-                'environment': ['MYSQLPASSWORD:%env_MYSQL_PASSWORD%']
-            }
-        }
-        result = backupService.searchDump('/tmp/backup',listServices, listConfig)
+
+        result = backupService.searchDump('/tmp/backup',listServices)
 
         targetResult = [
             {
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': [
-                    'pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump',
-                    'fake_cmd2 -h 10.0.0.2 -U user'
+                    'pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump'
                 ],
-                'entrypoint': "sh -c",
                 'environments': ['PGPASSWORD:pass'],
                 'image': 'postgres:latest'
-            },
-            {
-                'service': listServices[1],
-                'target_dir': '/tmp/backup/stack-test/test2',
-                'commands': [
-                    'mysqldump -h 10.1.0.2 -U user -d test -f /tmp/backup/stack-test/test2/test.dump',
-                    'fake_cmd2 -h 10.1.0.2 -U user'
-                ],
-                'environments': ['MYSQLPASSWORD:pass'],
-                'image': 'mysql:latest'
             }
         ]
 
         self.assertEqual(targetResult, result)
 
-        # Without environment on setting
-        listConfig = {
-            'postgres': {
-                'regex': "postgres",
-                'image': 'postgres:latest',
-                'commands': ['pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump'],
-            }
-        }
-        result = backupService.searchDump('/tmp/backup', listServices, listConfig)
 
-        targetResult = [
-            {
-                'service': listServices[0],
-                'target_dir': '/tmp/backup/stack-test/test',
-                'commands': ['pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump'],
-                'environments': [],
-                'image': 'postgres:latest'
-            }
-        ]
 
-        # Without image on setting
-        listConfig = {
-            'postgres': {
-                'regex': "postgres",
-                'commands': ['pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump'],
-            }
-        }
-        result = backupService.searchDump('/tmp/backup', listServices, listConfig)
 
-        targetResult = [
-            {
-                'service': listServices[0],
-                'target_dir': '/tmp/backup/stack-test/test',
-                'commands': ['pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump'],
-                'environments': [],
-                'image': 'test/postgres:latest'
-            }
-        ]
-
-        self.assertEqual(targetResult, result)
 
     @mock.patch.object(Command, 'runCmd', autospec=True)
     def testRunDump(self, mock_runCmd):
@@ -251,6 +222,7 @@ class BackupTest(unittest.TestCase):
 
         listServices = [
             {
+                'type': 'service',
                 'name': 'test',
                 'state': 'active',
                 'launchConfig': {
@@ -303,6 +275,7 @@ class BackupTest(unittest.TestCase):
                 ],
             },
             {
+                'type': 'service',
                 'name': 'test2',
                 'state': 'active',
                 'launchConfig': {
@@ -606,7 +579,25 @@ class BackupTest(unittest.TestCase):
         mock_file.assert_any_call('/backup/lb/docker-compose.yml', 'w')
         mock_file.assert_any_call('/backup/lb/rancher-compose.yml', 'w')
 
+    @mock.patch.object(Command, 'runCmd', autospec=True)
+    def testDumpRancherDatabase(self, mock_runCmd):
+        backupService = Backup()
 
+        listDatabaseSettings = {
+            "type": "mysql",
+            "host": "db-host",
+            "port": "3306",
+            "name": "rancher",
+            "user": "user",
+            "password": "password"
+        }
+
+        backupService.dumpRancherDatabase('/tmp/backup', listDatabaseSettings)
+
+        #print("Call run: %s", mock_runCmd.call_args_list)
+
+        mock_runCmd.assert_any_call(mock.ANY, 'docker pull mysql:latest')
+        mock_runCmd.assert_any_call(mock.ANY, "docker run --rm -v /tmp/backup/database:/tmp/backup/database -e 'MYSQL_PWD=password' mysql:latest sh -c 'mysqldump -h db-host -P 3306 -u user rancher > /tmp/backup/database/rancher.dump'")
 
 
 

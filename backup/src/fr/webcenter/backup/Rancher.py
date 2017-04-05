@@ -46,8 +46,8 @@ class Rancher(object):
                 logger.debug("Found service %s", service["name"])
 
                 # We add the stack associated to it
-                if 'environment' in service['links']:
-                    service['stack'] = self._client._get(service['links']['environment'])
+                if 'stack' in service['links']:
+                    service['stack'] = self._client._get(service['links']['stack'])
                     logger.debug("Service %s is on stack %s", service["name"], service['stack']['name'])
                 else:
                     logger.debug("No stack for service %s", service["name"])
@@ -76,16 +76,45 @@ class Rancher(object):
         :return list: the list of Rancher stack
         """
 
-        listEnvironments = self._client.list('environment')
-        targetListEnvironment = []
-        for environment in listEnvironments:
-            logger.debug("Grab setting for stack %s", environment['name'])
-            environment['settings'] = self._client.action(environment, 'exportconfig')
-            targetListEnvironment.append(environment)
+        listStacks = self._client.list('stack')
+        targetListStacks = []
+        for stack in listStacks:
+            logger.debug("Grab setting for stack %s", stack['name'])
+            stack['settings'] = self._client.action(stack, 'exportconfig')
+            targetListStacks.append(stack)
 
 
-        logger.debug("Return: %s", targetListEnvironment)
+        logger.debug("Return: %s", targetListStacks)
 
-        return targetListEnvironment
+        return targetListStacks
+
+
+    def getDatabaseSettings(self):
+        """
+        Permit to get the Rancher database settings to perform backup on it
+        :return dict: the database settings to connect on it
+        """
+
+        listSettings = self._client.list('setting')
+        listTargetSettings = {}
+
+        for setting in listSettings:
+            if setting["name"] == "cattle.db.cattle.database":
+                listTargetSettings["type"] = setting["activeValue"]
+            elif setting["name"] == "cattle.db.cattle.mysql.host":
+                listTargetSettings["host"] = setting["activeValue"]
+            elif setting["name"] == "cattle.db.cattle.mysql.name":
+                listTargetSettings["db"] = setting["activeValue"]
+            elif setting["name"] == "cattle.db.cattle.mysql.port":
+                listTargetSettings["port"] = setting["activeValue"]
+            elif setting["name"] == "cattle.db.cattle.password":
+                listTargetSettings["password"] = setting["activeValue"]
+            elif setting["name"] == "cattle.db.cattle.username":
+                listTargetSettings["user"] = setting["activeValue"]
+
+        return listTargetSettings
+
+
+
 
 

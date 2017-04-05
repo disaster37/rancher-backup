@@ -10,6 +10,7 @@ def fakeCallApiList(section):
     if section == "service":
 
         service = {}
+        service['type'] = "service"
         service['name'] = "test"
         service["state"] = "active"
         service['launchConfig'] = {}
@@ -20,19 +21,72 @@ def fakeCallApiList(section):
             'PGPASSWORD': 'pass'
         }
         service['links'] = {}
-        service['links']['environment'] = 'https://fake/environment'
+        service['links']['stack'] = 'https://fake/stack'
         service['links']['instances'] = 'https://fake/instances'
 
         return [service]
+
+    elif section == "setting":
+        listSettings = []
+        setting = {}
+        setting['id'] = "1as!account.by.key.credential.types"
+        setting['type'] = "activeSetting"
+        setting['name'] = "account.by.key.credential.types"
+        setting['activeValue'] = "agentApiKey, apiKey, usernamePassword"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.database"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.database"
+        setting['activeValue'] = "mysql"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.mysql.host"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.mysql.host"
+        setting['activeValue'] = "db"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.mysql.name"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.mysql.name"
+        setting['activeValue'] = "rancher"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.mysql.port"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.mysql.port"
+        setting['activeValue'] = "3306"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.password"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.password"
+        setting['activeValue'] = "password"
+        listSettings.append(setting)
+
+        setting = {}
+        setting['id'] = "1as!cattle.db.cattle.username"
+        setting['type'] = "activeSetting"
+        setting['name'] = "cattle.db.cattle.username"
+        setting['activeValue'] = "rancher"
+        listSettings.append(setting)
+
+        return listSettings
 
     else:
         return None
 
 def fakeCallApiGet(url):
-    if url == "https://fake/environment":
-        environment = {}
-        environment['name'] = 'stack-test'
-        return environment
+    if url == "https://fake/stack":
+        stack = {}
+        stack['name'] = 'stack-test'
+        return stack
 
     if url == "https://fake/hosts":
         host = {}
@@ -83,6 +137,7 @@ class RancherTest(unittest.TestCase):
 
         targetListServices = [
             {
+                'type': 'service',
                 'name': 'test',
                 'state': 'active',
                 'launchConfig': {
@@ -94,7 +149,7 @@ class RancherTest(unittest.TestCase):
                     }
                 },
                 'links': {
-                    'environment': 'https://fake/environment',
+                    'stack': 'https://fake/stack',
                     'instances': 'https://fake/instances',
                 },
                 'stack': {
@@ -149,5 +204,25 @@ class RancherTest(unittest.TestCase):
 
         rancherService = Rancher("https://url", "key", "secret")
         rancherService.getStacks()
-        mock_list.assert_any_call(mock.ANY,'environment')
+        mock_list.assert_any_call(mock.ANY,'stack')
 
+    @mock.patch.object(Client, 'list', side_effect=fakeCallApiList)
+    @mock.patch.object(Client, '__init__', side_effect=fakeClient)
+    def testGetDatabaseSettings(self, mock_init, mock_list):
+        rancherService = Rancher("https://url", "key", "secret")
+
+        targetListSettings = {
+            "type": "mysql",
+            "host": "db",
+            "db": "rancher",
+            "user": "rancher",
+            "password": "password",
+            "port": "3306"
+        }
+
+        listSettings = rancherService.getDatabaseSettings()
+
+        self.assertEquals(listSettings, targetListSettings)
+
+if __name__ == '__main__':
+    unittest.main()

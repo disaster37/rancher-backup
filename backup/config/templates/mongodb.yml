@@ -1,0 +1,7 @@
+image: "mongo:latest"
+commands:
+  {% if env.MONGO_USER and env.MONGO_PASS %}
+  - "mongodump --host {{ ip }} -u {{ env.MONGO_USER }} -p {{ env.MONGO_PASS }} --out {{ target_dir }}"
+  {% else %}
+  - "mongodump --host {{ ip }} --out {{ target_dir }}"
+  {% endif %}

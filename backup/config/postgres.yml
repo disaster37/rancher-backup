@@ -1,7 +1,0 @@
-postgres:
-  regex: "postgres"
-  image: "postgres:latest"
-  commands:
-    - "pg_dump -h %ip% -U %env_POSTGRES_USER% -d %env_POSTGRES_DB% -f %target_dir%/%env_POSTGRES_DB%.dump"
-  environment:
-    - PGPASSWORD:%env_POSTGRES_PASSWORD%

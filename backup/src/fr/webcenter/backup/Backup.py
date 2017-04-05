@@ -5,6 +5,10 @@ import logging
 import os
 from fr.webcenter.backup.Command import Command
 from fr.webcenter.backup.Singleton import Singleton
+from fr.webcenter.backup.Config import Config
+from jinja2 import Environment
+import yaml
+
 
 logger = logging
 class Backup(object):
@@ -14,15 +18,13 @@ class Backup(object):
 
     __metaclass__ = Singleton
 
-    def searchDump(self, backupPath, listServices, listSettings):
+    def searchDump(self, backupPath, listServices):
         """
-        This class search service where to perform a dump before to backup them
+        This class search service where to perform a dump before to backup them and grab all setting to perform backup
         :param backupPath: The path where to store the dump
         :param listServices: The list of all services provider by Rancher API
-        :param listSettings: The list of settings to identify the service where perform dump and command line to do that.
         :type backupPath: str
         :type listServices: list
-        :type listSettings: dict
         :return dict The list of service where to perform dump and docker command line associated to them.
         """
 
@@ -30,63 +32,51 @@ class Backup(object):
             raise KeyError("backupPath must be provided")
         if isinstance(listServices, list) is False:
             raise KeyError("listServices must be a list")
-        if isinstance(listSettings, dict) is False:
-            raise KeyError("listSettings must be a dict")
+
 
         logger.debug("backupPath: %s", backupPath)
         logger.debug("listServices: %s", listServices)
-        logger.debug("listSettings: %s", listSettings)
+
+        configService = Config()
+        index = configService.getIndex()
 
         listDump = []
 
         for service in listServices:
-            for name, setting in listSettings.iteritems():
+            for name, setting in index.iteritems():
                 if re.search(setting['regex'], service['launchConfig']['imageUuid']):
 
                     logger.info("Found '%s/%s' to do dumping" % (service['stack']['name'], service['name']))
+                    template = configService.getTemplate(setting['template'])
 
-                    #Replace macro ip
-                    commands = list(setting['commands'])
-                    if 'environment' in setting:
-                        environments = list(setting['environment'])
-                    else:
-                        environments = []
-                    ip = None
+                    env = Environment()
+                    template = env.from_string(template)
+                    context = {}
+
+                    # Get environment variables
+                    if 'environment' in service['launchConfig']:
+                        context["env"] = service['launchConfig']['environment']
+
+                    # Get IP
                     for instance in service['instances']:
                         if instance['state'] == "running":
-                            ip = instance['primaryIpAddress']
-                            logger.debug("Found IP %s", ip)
+                            context["ip"] = instance['primaryIpAddress']
+                            logger.debug("Found IP %s", context["ip"])
                             break
-                    commands = self._replaceMacro('%ip%', ip, commands)
-                    environments = self._replaceMacro("%ip", ip, environments)
 
-                    # Replace target_dir macro
-                    target_dir = backupPath + "/" + service['stack']['name'] + "/" + service['name']
-                    commands = self._replaceMacro('%target_dir%', target_dir, commands)
-                    environments = self._replaceMacro("%target_dir", target_dir, environments)
+                    # Get Taget backup
+                    context["target_dir"] = backupPath + "/" + service['stack']['name'] + "/" + service['name']
 
-                    # Replace environment macro
-                    if 'environment' in service['launchConfig']:
-                        for envKey, envValue in service['launchConfig']['environment'].iteritems():
-                            commands = self._replaceMacro("%env_" + envKey + "%", envValue, commands)
-                            environments = self._replaceMacro("%env_" + envKey + "%", envValue, environments)
+                    setting = yaml.load(template.render(context))
 
-                    dump = {}
-                    dump['service'] = service
-                    dump['target_dir'] = target_dir
-                    dump['commands'] = commands
-                    dump["environments"] = environments
-                    if "image" in setting:
-                        dump['image'] = setting['image']
-                    else:
-                        dump['image'] = service['launchConfig']['imageUuid']
-                    if "entrypoint" in setting:
-                        dump['entrypoint'] = setting['entrypoint']
+                    setting["service"] = service
+                    setting["target_dir"] = context["target_dir"]
+                    if "environments" not in setting:
+                        setting["environments"] = []
+                    if "image" not in setting:
+                        setting["image"] = service['launchConfig']['imageUuid']
 
-
-
-
-                    listDump.append(dump)
+                    listDump.append(setting)
                     break
 
         logger.debug(listDump)
@@ -96,7 +86,7 @@ class Backup(object):
 
     def runDump(self, listDump):
         """
-        Permit to perform dump on each services
+        Permit to perform dump on each services with Docker command
         :param listDump: The list of service where to perform the dump
         :type listDump: list
         """
@@ -161,7 +151,7 @@ class Backup(object):
 
 
 
-    def runDuplicity(self, backupPath, backend, fullBackupFrequency, fullBackupKeep, incrementalBackupChainKeep, volumeSize):
+    def runDuplicity(self, backupPath, backend, fullBackupFrequency, fullBackupKeep, incrementalBackupChainKeep, volumeSize, options=None):
         """
         Permit to backup the dump on remote target
         :param backupPath: the path where dump is stored
@@ -170,11 +160,13 @@ class Backup(object):
         :param fullBackupKeep: how many full backup to keep
         :param incrementalBackupChainKeep: how many incremental backup chain to keep
         :param volumeSize: how many size for each volume
+        :param options: set some duplicity options
         :type backupPath: str
         :type backend: str
         :type fullBackupFrequency: str
         :type incrementalBackupChainKeep: str
         :type volumeSize: str
+        :type options: str
         """
 
         if backupPath is None or backupPath == "":
@@ -183,12 +175,16 @@ class Backup(object):
             raise KeyError("backend must be provided")
         if fullBackupFrequency is None or fullBackupFrequency == "":
             raise KeyError("fullBackupFrequency  must be provided")
-        if fullBackupKeep is None or fullBackupKeep == "":
+        if isinstance(fullBackupKeep, int) is False:
             raise KeyError("fullBackupKeep must be provided")
-        if incrementalBackupChainKeep is None or incrementalBackupChainKeep == "":
+        if isinstance(incrementalBackupChainKeep, int) is False:
             raise KeyError("incrementalBackupChainKeep must be provided")
-        if volumeSize is None or volumeSize == "":
+        if isinstance(volumeSize, int) is False:
             raise KeyError("volumeSize must be provided")
+        if options is None:
+            options = ""
+        if isinstance(options, basestring) is False:
+            raise KeyError("Options mus be a None or string")
 
         logger.debug("backupPath: %s", backupPath)
         logger.debug("backend: %s", backend)
@@ -196,11 +192,12 @@ class Backup(object):
         logger.debug("fullBackupKeep: %s", fullBackupKeep)
         logger.debug("incrementalBackupChainKeep: %s", incrementalBackupChainKeep)
         logger.debug("volumeSize: %s", volumeSize)
+        logger.debug("options: %s", options)
 
         commandService = Command()
 
         logger.info("Start backup")
-        result = commandService.runCmd("duplicity --volsize %s --no-encryption --allow-source-mismatch --full-if-older-than %s %s %s" % (volumeSize, fullBackupFrequency, backupPath, backend))
+        result = commandService.runCmd("duplicity %s --volsize %s --no-encryption --allow-source-mismatch --full-if-older-than %s %s %s" % (options, volumeSize, fullBackupFrequency, backupPath, backend))
         logger.info(result)
 
         logger.info("Clean old full backup is needed")
@@ -252,38 +249,54 @@ class Backup(object):
             fp.close()
 
 
-
-
-    def _replaceMacro(self, macro, value, data):
+    def dumpRancherDatabase(self, backupPath, listDatabaseSettings):
         """
-        Permit to replace macro by value on data.
-        :param macro: the macro to replace
-        :param value: the value to replace macro
-        :param data: search macro on it
-        :type macro: str
-        :type value: str
-        :type data: str or list
-        :return str or list the data with value
+        Permit to dump Rancher database
+        :param backupPath: the backup path where store the database dump
+        :param listDatabaseSettings: the database parameters to connect on it
+        :type backupPath: basestring
+        :type listDatabaseSettings: dict
         """
 
-        if macro is None or macro == "":
-            raise KeyError("Macro must be provided")
-        if value is None:
-            raise KeyError("Value must be provided")
-        if data is None:
-            raise KeyError("Data must be provided")
+        if backupPath is None or backupPath == "":
+            raise KeyError("backupPath must be provided")
+        if isinstance(listDatabaseSettings, dict) is False:
+            raise KeyError("listDatabaseSettings must be provided")
 
-        logger.debug("macro: %s", macro)
-        logger.debug("value: %s", value)
-        logger.debug("data: %s", data)
+        if "type" not in listDatabaseSettings:
+            raise KeyError("You must provide the database type")
+        if "host" not in listDatabaseSettings:
+            raise KeyError("You must provide the database host")
+        if "port" not in listDatabaseSettings:
+            raise KeyError("You must provide the database port")
+        if "user" not in listDatabaseSettings:
+            raise KeyError("You must provide the database user")
+        if "password" not in listDatabaseSettings:
+            raise KeyError("You must provide the database password")
+        if "name" not in listDatabaseSettings:
+            raise KeyError("You must provide the database name")
 
-        if isinstance(data, basestring):
-            data = data.replace(macro, value)
+        commandService = Command()
+        target_dir = "%s/database" % (backupPath)
+        image = "mysql:latest"
+        logger.info("Dumping the Rancher database '%s' in '%s'", listDatabaseSettings['name'], target_dir)
 
-        elif isinstance(data, list):
-            for index in range(len(data)):
-                data[index] = data[index].replace(macro, value)
+        if os.path.isdir(target_dir) is False:
+            os.makedirs(target_dir)
+            logger.debug("Create directory '%s'", target_dir)
         else:
-            raise KeyError("Data must be str or list")
+            logger.debug("Directory '%s' already exist", target_dir)
 
-        return data
+        commandService.runCmd("docker pull %s" % image)
+        command = "sh -c 'mysqldump -h %s -P %s -u %s %s > %s/%s.dump'" % (listDatabaseSettings['host'], listDatabaseSettings['port'], listDatabaseSettings['user'], listDatabaseSettings['name'], target_dir, listDatabaseSettings['name'])
+        dockerCmd = "docker run --rm -v %s:%s -e 'MYSQL_PWD=%s' %s %s" % (target_dir, target_dir, listDatabaseSettings['password'], image, command)
+        commandService.runCmd(dockerCmd)
+        logger.info("Dump Rancher database is finished")
+
+
+
+
+
+
+
+
