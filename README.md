@@ -46,32 +46,32 @@ Confd settings:
 - **CONFD_NODES**: The nodes to use to access on backend. Defaukt is empty. 
 
 The following options permit to set the backup policy :
-- **BACKUP_cron_schedule**: when you should start backup. For example, to start backup each day set `0 0 0 * * *`. Default is `0 0 0 * * *`
-- **BACKUP_module_database**: Allow to auto discover service and perform dump (when Know) before start backup with Duplicity. Default is `true`.
-- **BACKUP_module_stack**: Allow to perform export of each stack before start backup with Duplicity. Default is `true`.
-- **BACKUP_module_rancher-db**: Allow to perform a dump of Rancher database befaire start backup with Duplicity. Default is `true`.
-- **BACKUP_duplicity_source-path**: The path to backup with Duplicity. Default is `/backup`.
-- **BACKUP_duplicity_target-path**: The path were store backup on remote backend. The default value is `/`.
-- **BACKUP_duplicity_url**: this is the target URL to externalize the backup. For example, to use FTP as external backup set `ftp://login@my-ftp.com` and add environment variable `FTP_PASSWORD`. For Amazon S3, set `s3://host[:port]/bucket_name[/prefix]`. Read the ducplicity man for [all supported backend](http://duplicity.nongnu.org/duplicity.1.html#sect7). There are no default value.
-- **BACKUP_duplicity_options**: List of options added when start backup with Duplicity. Is usefull to add SSH options. There are no default value.
-- **BACKUP_duplicity_full-if-older-than**: The frequency when you should make a full backup. For example, if you should make a full backup each 7 days, set `7D`. The default value is `7D`.
-- **BACKUP_duplicity_remove-all-but-n-full**: How many full backup you should to keep. For example, to keep 3 full backup set `3`. The default value is `3`.
-- **BACKUP_duplicity_remove-all-inc-of-but-n-full**: The number of intermediate incremental backup you should keep with the full backup. For example, if you should keep only the incremental backend after the last full backup set `1`. The default value is set to `1`.
-- **BACKUP_duplicity_volsize**: The volume size to store the backup (in MB). The default value is `200`.
-- **BACKUP_rancher_db_host**: The rancher database IP/DNS (needed if you should perform Rancher database dump). No default value.
-- **BACKUP_rancher_db_port**: The rancher database port (needed if you should perform Rancher database dump). Default is `3306`.
-- **BACKUP_rancher_db_user**: The rancher database user (needed if you should perform Rancher database dump). Default is `rancher`.
-- **BACKUP_rancher_db_password**: The rancher database password (needed if you should perform Rancher database dump). No default value.
-- **BACKUP_rancher_db_name**: The rancher database name (needed if you should perform Rancher database dump). Default is `rancher`.
+- **BACKUP_CRON_schedule**: when you should start backup. For example, to start backup each day set `0 0 0 * * *`. Default is `0 0 0 * * *`
+- **BACKUP_MODULE_database**: Allow to auto discover service and perform dump (when Know) before start backup with Duplicity. Default is `true`.
+- **BACKUP_MODULE_stack**: Allow to perform export of each stack before start backup with Duplicity. Default is `true`.
+- **BACKUP_MODULE_rancher-db**: Allow to perform a dump of Rancher database befaire start backup with Duplicity. Default is `true`.
+- **BACKUP_DUPLICITY_source-path**: The path to backup with Duplicity. Default is `/backup`.
+- **BACKUP_DUPLICITY_target-path**: The path were store backup on remote backend. The default value is `/`.
+- **BACKUP_DUPLICITY_url**: this is the target URL to externalize the backup. For example, to use FTP as external backup set `ftp://login@my-ftp.com` and add environment variable `FTP_PASSWORD`. For Amazon S3, set `s3://host[:port]/bucket_name[/prefix]`. Read the ducplicity man for [all supported backend](http://duplicity.nongnu.org/duplicity.1.html#sect7). There are no default value.
+- **BACKUP_DUPLICITY_options**: List of options added when start backup with Duplicity. Is usefull to add SSH options. There are no default value.
+- **BACKUP_DUPLICITY_full-if-older-than**: The frequency when you should make a full backup. For example, if you should make a full backup each 7 days, set `7D`. The default value is `7D`.
+- **BACKUP_DUPLICITY_remove-all-but-n-full**: How many full backup you should to keep. For example, to keep 3 full backup set `3`. The default value is `3`.
+- **BACKUP_DUPLICITY_remove-all-inc-of-but-n-full**: The number of intermediate incremental backup you should keep with the full backup. For example, if you should keep only the incremental backend after the last full backup set `1`. The default value is set to `1`.
+- **BACKUP_DUPLICITY_volsize**: The volume size to store the backup (in MB). The default value is `200`.
+- **BACKUP_RANCHER_db_host**: The rancher database IP/DNS (needed if you should perform Rancher database dump). No default value.
+- **BACKUP_RANCHER_db_port**: The rancher database port (needed if you should perform Rancher database dump). Default is `3306`.
+- **BACKUP_RANCHER_db_user**: The rancher database user (needed if you should perform Rancher database dump). Default is `rancher`.
+- **BACKUP_RANCHER_db_password**: The rancher database password (needed if you should perform Rancher database dump). No default value.
+- **BACKUP_RANCHER_db_name**: The rancher database name (needed if you should perform Rancher database dump). Default is `rancher`.
 
 To set the Rancher API connection prefer to add special label that generate access on the flow:
 - `io.rancher.container.create_agent=true`
 - `io.rancher.container.agent.role=environment`
 
 Or you can define them manually :
-- **BACKUP_rancher_api_url**: the API URL with your project ID
-- **BACKUP_rancher_api_key**: the API key
-- **BACKUP_rancher_api_secret**: the API secret key
+- **BACKUP_RANCHER_api_url**: the API URL with your project ID
+- **BACKUP_RANCHER_api_key**: the API key
+- **BACKUP_RANCHER_api_secret**: the API secret key
 
 ## How to extend this
 
