@@ -58,8 +58,8 @@ duplicity:
 {{- else}}
   url:
 {{- end}}
-{{- if (exists "duplicity/options")}}
-  options: "{{getv "duplicity/options"}}"
+{{- if (exists "/duplicity/options")}}
+  options: "{{getv "/duplicity/options"}}"
 {{- else}}
   options:
 {{- end}}
