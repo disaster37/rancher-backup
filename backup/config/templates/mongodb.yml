@@ -2,6 +2,8 @@ image: "mongo:latest"
 commands:
   {% if env.MONGO_USER and env.MONGO_PASS %}
   - "mongodump --host {{ ip }} -u {{ env.MONGO_USER }} -p {{ env.MONGO_PASS }} --gzip --archive > {{ target_dir }}/databases.archive.gz"
+  {% elif env.MONGO_PASS %}
+   - "mongodump --host {{ ip }} -u admin -p {{ env.MONGO_PASS }} --gzip --archive > {{ target_dir }}/databases.archive.gz"
   {% else %}
   - "mongodump --host {{ ip }} --gzip --archive > {{ target_dir }}/databases.archive.gz"
   {% endif %}
