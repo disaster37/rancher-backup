@@ -56,6 +56,8 @@ class Backup(object):
                     # Get environment variables
                     if 'environment' in service['launchConfig']:
                         context["env"] = service['launchConfig']['environment']
+                    else:
+                        context["env"] = {}
 
                     # Get IP
                     for instance in service['instances']:
