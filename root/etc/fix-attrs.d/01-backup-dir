@@ -1,2 +1,2 @@
-/backup false backup 0660 0770
+/backup true backup 0660 0770
 /opt/backup/config true backup  0660 0770
