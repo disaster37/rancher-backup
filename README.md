@@ -58,6 +58,7 @@ The following options permit to set the backup policy :
 - **BACKUP_DUPLICITY_remove-all-but-n-full**: How many full backup you should to keep. For example, to keep 3 full backup set `3`. The default value is `3`.
 - **BACKUP_DUPLICITY_remove-all-inc-of-but-n-full**: The number of intermediate incremental backup you should keep with the full backup. For example, if you should keep only the incremental backend after the last full backup set `1`. The default value is set to `1`.
 - **BACKUP_DUPLICITY_volsize**: The volume size to store the backup (in MB). The default value is `200`.
+- **BACKUP_DUPLICITY_encrypt-key**: The GPG key ID to crypt / decrypt backup. You need to set `PASSPHRASE` environment to allow crypt/decrypt without user interaction. You need to mount your GPG keys on `/opt/backup/.gnupg`.
 - **BACKUP_RANCHER_db_host**: The rancher database IP/DNS (needed if you should perform Rancher database dump). No default value.
 - **BACKUP_RANCHER_db_port**: The rancher database port (needed if you should perform Rancher database dump). Default is `3306`.
 - **BACKUP_RANCHER_db_user**: The rancher database user (needed if you should perform Rancher database dump). Default is `rancher`.
