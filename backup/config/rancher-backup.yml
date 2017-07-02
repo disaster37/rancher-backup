@@ -28,6 +28,7 @@ duplicity:
   remove-all-inc-of-but-n-full: 1
   volsize: 200
   options:
+  encrypt-key:
 
 # cron
 cron:

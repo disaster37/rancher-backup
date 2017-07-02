@@ -153,7 +153,7 @@ class Backup(object):
 
 
 
-    def runDuplicity(self, backupPath, backend, fullBackupFrequency, fullBackupKeep, incrementalBackupChainKeep, volumeSize, options=None):
+    def runDuplicity(self, backupPath, backend, fullBackupFrequency, fullBackupKeep, incrementalBackupChainKeep, volumeSize, options=None, encryptKey=None):
         """
         Permit to backup the dump on remote target
         :param backupPath: the path where dump is stored
@@ -163,12 +163,14 @@ class Backup(object):
         :param incrementalBackupChainKeep: how many incremental backup chain to keep
         :param volumeSize: how many size for each volume
         :param options: set some duplicity options
+        :param encryptKey: The GPG key if you should crypt backup
         :type backupPath: str
         :type backend: str
         :type fullBackupFrequency: str
         :type incrementalBackupChainKeep: str
         :type volumeSize: str
         :type options: str
+        :type encryptKey: str
         """
 
         if backupPath is None or backupPath == "":
@@ -186,7 +188,9 @@ class Backup(object):
         if options is None:
             options = ""
         if isinstance(options, basestring) is False:
-            raise KeyError("Options mus be a None or string")
+            raise KeyError("options must be a None or string")
+        if isinstance(encryptKey, basestring) is False:
+            raise KeyError("encryptKey must be a None or string")
 
         logger.debug("backupPath: %s", backupPath)
         logger.debug("backend: %s", backend)
@@ -195,23 +199,30 @@ class Backup(object):
         logger.debug("incrementalBackupChainKeep: %s", incrementalBackupChainKeep)
         logger.debug("volumeSize: %s", volumeSize)
         logger.debug("options: %s", options)
+        logger.debug("encryptKey: %s", encryptKey)
+        
+        if encryptKey is None:
+            crypt = "--no-encryption"
+        else:
+            crypt = "--encrypt-key %s" % encryptKey
+        
 
         commandService = Command()
 
         logger.info("Start backup")
-        result = commandService.runCmd("duplicity %s --volsize %s --no-encryption --allow-source-mismatch --full-if-older-than %s %s %s" % (options, volumeSize, fullBackupFrequency, backupPath, backend))
+        result = commandService.runCmd("duplicity %s --volsize %s %s --allow-source-mismatch --full-if-older-than %s %s %s" % (options, volumeSize, crypt, fullBackupFrequency, backupPath, backend))
         logger.info(result)
 
         logger.info("Clean old full backup is needed")
-        result = commandService.runCmd("duplicity remove-all-but-n-full %s --force --allow-source-mismatch --no-encryption %s" % (fullBackupKeep, backend))
+        result = commandService.runCmd("duplicity remove-all-but-n-full %s --force --allow-source-mismatch %s %s" % (fullBackupKeep, crypt, backend))
         logger.info(result)
 
         logger.info("Clean old incremental backup if needed")
-        result = commandService.runCmd("duplicity remove-all-inc-of-but-n-full %s --force --allow-source-mismatch --no-encryption %s" % (incrementalBackupChainKeep, backend))
+        result = commandService.runCmd("duplicity remove-all-inc-of-but-n-full %s --force --allow-source-mismatch %s %s" % (incrementalBackupChainKeep, crypt,  backend))
         logger.info(result)
 
         logger.info("Cleanup backup")
-        result = commandService.runCmd("duplicity  cleanup --force --no-encryption %s" % (backend))
+        result = commandService.runCmd("duplicity  cleanup --force %s %s" % (backend, crypt))
         logger.info(result)
 
 

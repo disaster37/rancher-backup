@@ -63,6 +63,11 @@ duplicity:
 {{- else}}
   options:
 {{- end}}
+{{- if (exists "/duplicity/encrypt-key")}}
+  encrypt-key: "{{getv "/duplicity/encrypt-key"}}"
+{{- else}}
+  encrypt-key:
+{{- end}}
   full-if-older-than: "{{getv "/duplicity/full-if-older-than" "7D"}}"
   remove-all-but-n-full: {{getv "/duplicity/remove-all-but-n-full" "3"}}
   remove-all-inc-of-but-n-full: {{getv "/duplicity/remove-all-inc-of-but-n-full" "1"}}

@@ -129,6 +129,7 @@ def getAndcheckAllParameters():
     logger.info("Backup full to keep: %s", settings['duplicity']['remove-all-but-n-full'])
     logger.info("Backup incremental chain to keep: %s", settings['duplicity']['remove-all-inc-of-but-n-full'])
     logger.info("Volume size: %s", settings['duplicity']['volsize'])
+    logger.info("Backup options: %s", settings['duplicity']['options'])
     
     # Init services
     try:
@@ -239,7 +240,7 @@ if __name__ == '__main__':
     
             # We run the backup
             logger.info("Start to externalize the backup with Duplicity...")
-            backupService.runDuplicity(settings['duplicity']['source-path'], backend, settings['duplicity']['full-if-older-than'], settings['duplicity']['remove-all-but-n-full'], settings['duplicity']['remove-all-inc-of-but-n-full'], settings['duplicity']['volsize'], settings['duplicity']['options'])
+            backupService.runDuplicity(settings['duplicity']['source-path'], backend, settings['duplicity']['full-if-older-than'], settings['duplicity']['remove-all-but-n-full'], settings['duplicity']['remove-all-inc-of-but-n-full'], settings['duplicity']['volsize'], settings['duplicity']['options'], settings['duplicity']['encrypt-key'])
             logger.info("The backup exporing is finished.")
     
     
