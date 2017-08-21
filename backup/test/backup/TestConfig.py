@@ -4,33 +4,38 @@ import unittest
 import mock
 from fr.webcenter.backup.Config import Config
 
-def fakeSetting(path=None):
+
+
+
+def fakeSetting(path):
     
-    if path is not None:
-    
-        Config._settings = {
+    settings = {
             'rancher.host': "test",
             'rancher.port': 1234
-        }
-
-        Config._index =  {
-            'mysql': {
-                'image': 'fake/image',
-                'command': 'facke command'
-            }
-        }
-
-        Config._templates = {
+    }
+    
+    indexes = { 
+                'mysql': {
+                    'image': 'fake/image',
+                    'command': 'facke command'
+                }
+    }
+    
+    templates = {
             path + '/templates/mysql.yml': "my mysql fake sample",
             'postgresql.yml': "my postgresql fake sample"
-        }
-
-        Config._path = path
-
-class ConfigTest(unittest.TestCase):
+    }
     
-    @mock.patch.object(Config, '__init__', side_effect=fakeSetting)
+    return (settings, indexes, templates)
+
+class TestConfig(unittest.TestCase):
+    
+    def tearDown(self):
+        Config._drop()
+    
+    @mock.patch.object(Config, '_load', side_effect=fakeSetting)
     def testGetSettings(self, run_mock):
+        Config._drop()
         configService = Config("/fake/path")
         settings = configService.getSettings()
 
@@ -45,8 +50,9 @@ class ConfigTest(unittest.TestCase):
         settings = configService.getSettings()
         self.assertEqual(settings, targetSettings)
 
-    @mock.patch.object(Config, '__init__', side_effect=fakeSetting)
+    @mock.patch.object(Config, '_load', side_effect=fakeSetting)
     def testGetIndex(self, run_mock):
+        Config._drop()
         configService = Config("/fake/path")
         index = configService.getIndex()
 
@@ -63,8 +69,9 @@ class ConfigTest(unittest.TestCase):
         index = configService.getIndex()
         self.assertEqual(index, targetIndex)
 
-    @mock.patch.object(Config, '__init__', side_effect=fakeSetting)
+    @mock.patch.object(Config, '_load', side_effect=fakeSetting)
     def testGetTemplate(self, run_mock):
+        Config._drop()
         configService = Config("/fake/path")
         template = configService.getTemplate("mysql.yml")
 

@@ -5,11 +5,13 @@ from fr.webcenter.backup.Backup import Backup
 __author__ = 'disaster'
 
 
-class TemplateTest(unittest.TestCase):
+class TestTemplate(unittest.TestCase):
 
     def setUp(self):
 
-        configService = Config("../../../../config")
+        self.maxDiff = None
+        configService = Config("../../config")
+        
 
 
     def testTemplateMysql(self):
@@ -1084,7 +1086,7 @@ class TemplateTest(unittest.TestCase):
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': [
-                    'mongodump --host 10.0.0.2 --out /tmp/backup/stack-test/test'
+                    'mongodump --host 10.0.0.2 --gzip --archive > /tmp/backup/stack-test/test/databases.archive.gz'
                 ],
                 'environments': [],
                 'image': 'mongo:latest'
@@ -1156,7 +1158,7 @@ class TemplateTest(unittest.TestCase):
                 'service': listServices[0],
                 'target_dir': '/tmp/backup/stack-test/test',
                 'commands': [
-                    'mongodump --host 10.0.0.2 -u user -p pass --out /tmp/backup/stack-test/test'
+                    'mongodump --host 10.0.0.2 -u user -p pass --gzip --archive > /tmp/backup/stack-test/test/databases.archive.gz'
                 ],
                 'environments': [],
                 'image': 'mongo:latest'

@@ -8,7 +8,7 @@ import subprocess
 from fr.webcenter.backup.Command import Command
 
 
-class CommandTest(unittest.TestCase):
+class TestCommand(unittest.TestCase):
 
     @mock.patch.object(subprocess, 'Popen', autospec=True)
     def testRunCmd(self, mock_popen):

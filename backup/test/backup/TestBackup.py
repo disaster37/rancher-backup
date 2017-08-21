@@ -62,7 +62,7 @@ def fakeSetting(path=None):
 
     Config._path = path
 
-class BackupTest(unittest.TestCase):
+class TestBackup(unittest.TestCase):
 
 
     @mock.patch.object(Command, 'runCmd', autospec=True)

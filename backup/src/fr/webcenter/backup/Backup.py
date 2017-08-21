@@ -45,41 +45,47 @@ class Backup(object):
         for service in listServices:
             for name, setting in index.iteritems():
                 if re.search(setting['regex'], service['launchConfig']['imageUuid']):
+                    
+                    try:
 
-                    logger.info("Found '%s/%s' to do dumping" % (service['stack']['name'], service['name']))
-                    template = configService.getTemplate(setting['template'])
-
-                    env = Environment()
-                    template = env.from_string(template)
-                    context = {}
-
-                    # Get environment variables
-                    if 'environment' in service['launchConfig']:
-                        context["env"] = service['launchConfig']['environment']
-                    else:
-                        context["env"] = {}
-
-                    # Get IP
-                    for instance in service['instances']:
-                        if instance['state'] == "running":
-                            context["ip"] = instance['primaryIpAddress']
-                            logger.debug("Found IP %s", context["ip"])
-                            break
-
-                    # Get Taget backup
-                    context["target_dir"] = backupPath + "/" + service['stack']['name'] + "/" + service['name']
-
-                    setting = yaml.load(template.render(context))
-
-                    setting["service"] = service
-                    setting["target_dir"] = context["target_dir"]
-                    if "environments" not in setting:
-                        setting["environments"] = []
-                    if "image" not in setting:
-                        setting["image"] = service['launchConfig']['imageUuid']
-
-                    listDump.append(setting)
-                    break
+                        logger.info("Found '%s/%s' to do dumping" % (service['stack']['name'], service['name']))
+                        template = configService.getTemplate(setting['template'])
+    
+                        env = Environment()
+                        template = env.from_string(template)
+                        context = {}
+    
+                        # Get environment variables
+                        if 'environment' in service['launchConfig']:
+                            context["env"] = service['launchConfig']['environment']
+                        else:
+                            context["env"] = {}
+    
+                        # Get IP
+                        for instance in service['instances']:
+                            if instance['state'] == "running":
+                                context["ip"] = instance['primaryIpAddress']
+                                logger.debug("Found IP %s", context["ip"])
+                                break
+    
+                        # Get Taget backup
+                        context["target_dir"] = backupPath + "/" + service['stack']['name'] + "/" + service['name']
+    
+                        setting = yaml.load(template.render(context))
+    
+                        setting["service"] = service
+                        setting["target_dir"] = context["target_dir"]
+                        if "environments" not in setting:
+                            setting["environments"] = []
+                        if "image" not in setting:
+                            setting["image"] = service['launchConfig']['imageUuid']
+    
+                        listDump.append(setting)
+                        break
+                    
+                    except Excexption as e:
+                        logger.error("Error appear when extract infos from Rancher API about '%s/%s', skip : %s" % (service['stack']['name'], service['name'], e.message))
+                        pass
 
         logger.debug(listDump)
 
@@ -102,31 +108,36 @@ class Backup(object):
 
 
         for dump in listDump:
-            logger.info("Dumping %s/%s in %s" % (dump['service']['stack']['name'], dump['service']['name'], dump['target_dir']))
-            environments = ""
-            for env in dump['environments']:
-                environments += " -e '%s'" % env.replace(':', '=')
-
-
-            if 'entrypoint' in dump:
-                entrypoint = "--entrypoint='%s'" % dump['entrypoint']
-            else:
-                entrypoint = ''
-
-            # Check if folder to receive dump exist, else create it
-            if os.path.isdir(dump['target_dir']) is False:
-                os.makedirs(dump['target_dir'])
-                logger.debug("Create directory '%s'", dump['target_dir'])
-            else:
-                logger.debug("Directory '%s' already exist", dump['target_dir'])
-
-            commandService.runCmd("docker pull %s" % dump['image'])
-
-            for command in dump['commands']:
-                dockerCmd = "docker run --rm %s -v %s:%s %s %s %s" % (entrypoint, dump['target_dir'], dump['target_dir'], environments, dump['image'], command)
-                commandService.runCmd(dockerCmd)
-            logger.info("Dump %s/%s is finished" % (dump['service']['stack']['name'], dump['service']['name']))
-
+            
+            try:
+                logger.info("Dumping %s/%s in %s" % (dump['service']['stack']['name'], dump['service']['name'], dump['target_dir']))
+                environments = ""
+                for env in dump['environments']:
+                    environments += " -e '%s'" % env.replace(':', '=')
+    
+    
+                if 'entrypoint' in dump:
+                    entrypoint = "--entrypoint='%s'" % dump['entrypoint']
+                else:
+                    entrypoint = ''
+    
+                # Check if folder to receive dump exist, else create it
+                if os.path.isdir(dump['target_dir']) is False:
+                    os.makedirs(dump['target_dir'])
+                    logger.debug("Create directory '%s'", dump['target_dir'])
+                else:
+                    logger.debug("Directory '%s' already exist", dump['target_dir'])
+    
+                commandService.runCmd("docker pull %s" % dump['image'])
+    
+                for command in dump['commands']:
+                    dockerCmd = "docker run --rm %s -v %s:%s %s %s %s" % (entrypoint, dump['target_dir'], dump['target_dir'], environments, dump['image'], command)
+                    commandService.runCmd(dockerCmd)
+                logger.info("Dump %s/%s is finished" % (dump['service']['stack']['name'], dump['service']['name']))
+            
+            except Exception as e:
+                logger.error("Error appear when dump '%s/%s', skip : %s" % (dump['service']['stack']['name'], dump['service']['name'], e.message))
+                pass
 
 
     def initDuplicity(self, backupPath, backend):
@@ -187,9 +198,9 @@ class Backup(object):
             raise KeyError("volumeSize must be provided")
         if options is None:
             options = ""
-        if isinstance(options, basestring) is False:
+        if options is not None and isinstance(options, basestring) is False:
             raise KeyError("options must be a None or string")
-        if isinstance(encryptKey, basestring) is False:
+        if encryptKey is not None and isinstance(encryptKey, basestring) is False:
             raise KeyError("encryptKey must be a None or string")
 
         logger.debug("backupPath: %s", backupPath)
@@ -222,7 +233,7 @@ class Backup(object):
         logger.info(result)
 
         logger.info("Cleanup backup")
-        result = commandService.runCmd("duplicity  cleanup --force %s %s" % (backend, crypt))
+        result = commandService.runCmd("duplicity  cleanup --force %s %s" % (crypt, backend))
         logger.info(result)
 
 
@@ -241,25 +252,31 @@ class Backup(object):
             raise KeyError("listEnvironments must be provided")
 
         for environment in listEnvironments:
+            
+            try:
 
-            targetDir = "%s/%s" % (backupPath, environment['name'])
-            logger.info("Save the Rancher setting for stack %s in %s", environment['name'], targetDir)
-
-            if os.path.isdir(targetDir) is False:
-                os.makedirs(targetDir)
-                logger.debug("Create directory '%s'", targetDir)
-            else:
-                logger.debug("Directory '%s' already exist", targetDir)
-
-            # Save docker-compose
-            fp = open(targetDir + '/docker-compose.yml', 'w')
-            fp.write(environment['settings']['dockerComposeConfig'])
-            fp.close()
-
-            # Save rancher-compose
-            fp = open(targetDir + '/rancher-compose.yml', 'w')
-            fp.write(environment['settings']['rancherComposeConfig'])
-            fp.close()
+                targetDir = "%s/%s" % (backupPath, environment['name'])
+                logger.info("Save the Rancher setting for stack %s in %s", environment['name'], targetDir)
+    
+                if os.path.isdir(targetDir) is False:
+                    os.makedirs(targetDir)
+                    logger.debug("Create directory '%s'", targetDir)
+                else:
+                    logger.debug("Directory '%s' already exist", targetDir)
+    
+                # Save docker-compose
+                fp = open(targetDir + '/docker-compose.yml', 'w')
+                fp.write(environment['settings']['dockerComposeConfig'])
+                fp.close()
+    
+                # Save rancher-compose
+                fp = open(targetDir + '/rancher-compose.yml', 'w')
+                fp.write(environment['settings']['rancherComposeConfig'])
+                fp.close()
+                
+            except Exception as e:
+                logger.error("Error appear when save setting for stack '%s', skip : %s" % (environment['name'], e.message))
+                pass
 
 
     def dumpRancherDatabase(self, backupPath, listDatabaseSettings):
