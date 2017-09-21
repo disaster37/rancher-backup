@@ -75,7 +75,7 @@ class Backup(object):
     
                         setting["service"] = service
                         setting["target_dir"] = context["target_dir"]
-                        if "environments" not in setting:
+                        if "environments" not in setting or not setting["environments"]:
                             setting["environments"] = []
                         if "image" not in setting:
                             setting["image"] = service['launchConfig']['imageUuid']
