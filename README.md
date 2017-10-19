@@ -132,3 +132,8 @@ We use [Jinja2 templating](http://jinja.pocoo.org/docs/2.9/templates/) and we ad
 - `{{ip}}`: the IP to join the container to perform a remote dump
 - `{{env.SERVICE_ENV}}`: Take the value of service environment called `SERVICE_ENV`
 - `{{target_dir}}`: It's the path where store the dump (`BACKUP_PATH/dump/STACK_NAME/SERVICE_NAME`)
+
+
+# Contribute
+
+Your PR are welcome, but please use develop branch and not master.
