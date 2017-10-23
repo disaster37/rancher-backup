@@ -86,6 +86,7 @@ class Backup(object):
                     
                     except Excexption as e:
                         logger.error("Error appear when extract infos from Rancher API about '%s/%s', skip : %s" % (service['stack']['name'], service['name'], e.message))
+                        # Don't beack backup if somethink wrong
                         pass
 
         logger.debug(listDump)
@@ -138,6 +139,7 @@ class Backup(object):
             
             except Exception as e:
                 logger.error("Error appear when dump '%s/%s', skip : %s" % (dump['service']['stack']['name'], dump['service']['name'], e.message))
+                # Don't beack backup if somethink wrong
                 pass
 
 
