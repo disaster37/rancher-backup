@@ -44,7 +44,8 @@ class Backup(object):
 
         for service in listServices:
             for name, setting in index.iteritems():
-                if re.search(setting['regex'], service['launchConfig']['imageUuid']):
+                # First search on label and then search on image name
+                if ('labels' in service['launchConfig'] and 'backup.type' in service['launchConfig']['labels'] and re.search(setting['regex'], service['launchConfig']['labels']['backup.type'])) or re.search(setting['regex'], service['launchConfig']['imageUuid']):
                     
                     try:
 

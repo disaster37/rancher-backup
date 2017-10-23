@@ -5,9 +5,10 @@ The goal, it's to have ability to use docker command to perform dump (when neede
 
 To do the job in easiest way, we use the power of Rancher API to discover the service witch must be dumped before to start the backup.
 We use some settings files on `/opt/backup/config` to explain how discover the service witch must be dumped and how to do that.
+The first time we try to apply regex on label called `backup.type`, and if not match we try to apply on image name.
 Next, all the contains of `BACKUP_duplicity_source-path` (default is /backup) is backuped on remote backend with duplicity. So you can map your data volume on this container to backup it in the same time.
 
-You are welcome to contribute on github to extend the supported service.
+You are welcome to contribute on github to extend the supported service (use develop branch).
 
 # Compatibilities
 
@@ -36,9 +37,15 @@ When we detect Cassandra service, we send command to Cassandra to ask it to perf
 
 If you should to not dump a particular service witch is supported, you can add label on service `backup.disable=true`
 
+## Backup discovery
+
+First it search on label called `backup.type` and if doesn't found, it search on image name.
+It's mean that if you should backup MySQL database, you need to set label `backup.type=mysql` or use docker image that contains name `mysql`.
+
+
 ## Backup options
 
-> We use [Confd](https://github.com/yunify/confd) to configure backup options.
+> We use [Confd](https://github.com/kelseyhightower/confd) to configure backup options.
 
 Confd settings:
 - **CONFD_PREFIX_KEY**: The prefix key use by Confd. Default is `/backup`
@@ -90,7 +97,7 @@ mysql:
 ```
 
 Few explanation:
-- **regex**: It's the regex to discover service witch must be dumped. This regex is applied to image docker used in service.
+- **regex**: It's the regex to discover service witch must be dumped. This regex is applied first on label called `backup.type` and then to image docker used in service.
 - **template**: It's the template to use to perform MySQL dump.
 
 backup/template/mysql.yml

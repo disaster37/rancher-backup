@@ -84,7 +84,8 @@ class TestBackup(unittest.TestCase):
     def testSearchDump(self, mock_config):
         backupService = Backup()
         Config('/fake/path')
-
+        
+        # Search template backup with image name
         listServices = [
             {
                 'type': 'service',
@@ -149,6 +150,141 @@ class TestBackup(unittest.TestCase):
                         'MYSQL_USER': 'user',
                         'MYSQL_DATABASE': 'test',
                         'MYSQL_PASSWORD': 'pass'
+                    }
+                },
+                'links': {
+                    'environment': 'https://fake/environment',
+                    'instances': 'https://fake/instances',
+                },
+                'stack': {
+                    'name': 'stack-test'
+                },
+                'instances': [
+                    {
+                        'state': 'disabled',
+                        'primaryIpAddress': '10.1.0.1',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.1.0.2',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.1.0.3',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    }
+
+                ],
+            }
+        ]
+
+
+        result = backupService.searchDump('/tmp/backup',listServices)
+
+        targetResult = [
+            {
+                'service': listServices[0],
+                'target_dir': '/tmp/backup/stack-test/test',
+                'commands': [
+                    'pg_dump -h 10.0.0.2 -U user -d test -f /tmp/backup/stack-test/test/test.dump'
+                ],
+                'environments': ['PGPASSWORD:pass'],
+                'image': 'postgres:latest'
+            }
+        ]
+
+        self.assertEqual(targetResult, result)
+        
+        
+        # Search backup with labels
+        # Search template backup with image name
+        listServices = [
+            {
+                'type': 'service',
+                'name': 'test',
+                'state': 'active',
+                'launchConfig': {
+                    'imageUuid': 'test/my-db:latest',
+                    'environment': {
+                        'POSTGRES_USER': 'user',
+                        'POSTGRES_DB':'test',
+                        'POSTGRES_PASSWORD':'pass'
+                    },
+                    'labels': {
+                        'backup.type': 'postgres'
+                    }
+                },
+                'links': {
+                    'environment': 'https://fake/environment',
+                    'instances': 'https://fake/instances',
+                },
+                'stack': {
+                    'name': 'stack-test'
+                },
+                'instances': [
+                    {
+                        'state': 'disabled',
+                        'primaryIpAddress': '10.0.0.1',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.0.0.2',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    },
+                    {
+                        'state': 'running',
+                        'primaryIpAddress': '10.0.0.3',
+                        'host': {
+                            'name': 'host-1'
+                        },
+                        'links': {
+                            'hosts': 'https://fake/hosts'
+                        }
+                    }
+
+                ],
+            },
+            {
+                'type': 'service',
+                'name': 'test2',
+                'state': 'active',
+                'launchConfig': {
+                    'imageUuid': 'test/my-db:latest',
+                    'environment': {
+                        'MYSQL_USER': 'user',
+                        'MYSQL_DATABASE': 'test',
+                        'MYSQL_PASSWORD': 'pass'
+                    },
+                    'labels': {
+                        'backup.type': 'mysql'
                     }
                 },
                 'links': {
