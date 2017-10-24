@@ -215,7 +215,7 @@ class Backup(object):
         logger.debug("options: %s", options)
         logger.debug("encryptKey: %s", encryptKey)
         
-        if encryptKey is None:
+        if encryptKey is None or encryptKey == "":
             crypt = "--no-encryption"
         else:
             crypt = "--encrypt-key %s" % encryptKey
