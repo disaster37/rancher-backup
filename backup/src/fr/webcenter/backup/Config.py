@@ -21,25 +21,34 @@ class Config(object):
 
 
         # Load main settings
-        contendSetting = open(path + '/rancher-backup.yml', 'r').read()
-        Config._settings = yaml.load(contendSetting)
+        self._settings, self._index, self._templates = self._load(path)
 
+        self._path = path
+
+    def _load(self, path):
+        
+        if isinstance(path, basestring) is False:
+            raise KeyError("Path must be a string")
+        
+        contendSetting = open(path + '/rancher-backup.yml', 'r').read()
+        settings =  yaml.load(contendSetting)
+        
         # Load index settings
         contendIndex = ""
         for file in glob.glob(path + '/index/*.yml'):
             contendIndex += open(file, 'r').read() + "\n"
 
         logger.debug("Index settings : %s", contendIndex)
-        Config._index = yaml.load(contendIndex)
+        indexes = yaml.load(contendIndex)
 
         # Load templates
         contendTemplates = {}
         for file in glob.glob(path + '/templates/*'):
             contendTemplates[file] = open(file, 'r').read()
-        Config._templates = contendTemplates
+        templates = contendTemplates
 
-        Config._path = path
-
+        return (settings, indexes, templates)
+        
 
     def getSettings(self):
         """

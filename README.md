@@ -5,9 +5,10 @@ The goal, it's to have ability to use docker command to perform dump (when neede
 
 To do the job in easiest way, we use the power of Rancher API to discover the service witch must be dumped before to start the backup.
 We use some settings files on `/opt/backup/config` to explain how discover the service witch must be dumped and how to do that.
+The first time we try to apply regex on label called `backup.type`, and if not match we try to apply on image name.
 Next, all the contains of `BACKUP_duplicity_source-path` (default is /backup) is backuped on remote backend with duplicity. So you can map your data volume on this container to backup it in the same time.
 
-You are welcome to contribute on github to extend the supported service.
+You are welcome to contribute on github to extend the supported service (use develop branch).
 
 # Compatibilities
 
@@ -36,9 +37,15 @@ When we detect Cassandra service, we send command to Cassandra to ask it to perf
 
 If you should to not dump a particular service witch is supported, you can add label on service `backup.disable=true`
 
+## Backup discovery
+
+First it search on label called `backup.type` and if doesn't found, it search on image name.
+It's mean that if you should backup MySQL database, you need to set label `backup.type=mysql` or use docker image that contains name `mysql`.
+
+
 ## Backup options
 
-> We use [Confd](https://github.com/yunify/confd) to configure backup options.
+> We use [Confd](https://github.com/kelseyhightower/confd) to configure backup options.
 
 Confd settings:
 - **CONFD_PREFIX_KEY**: The prefix key use by Confd. Default is `/backup`
@@ -58,6 +65,7 @@ The following options permit to set the backup policy :
 - **BACKUP_DUPLICITY_remove-all-but-n-full**: How many full backup you should to keep. For example, to keep 3 full backup set `3`. The default value is `3`.
 - **BACKUP_DUPLICITY_remove-all-inc-of-but-n-full**: The number of intermediate incremental backup you should keep with the full backup. For example, if you should keep only the incremental backend after the last full backup set `1`. The default value is set to `1`.
 - **BACKUP_DUPLICITY_volsize**: The volume size to store the backup (in MB). The default value is `200`.
+- **BACKUP_DUPLICITY_encrypt-key**: The GPG key ID to crypt / decrypt backup. You need to set `PASSPHRASE` environment to allow crypt/decrypt without user interaction. You need to mount your GPG keys on `/opt/backup/.gnupg`.
 - **BACKUP_RANCHER_db_host**: The rancher database IP/DNS (needed if you should perform Rancher database dump). No default value.
 - **BACKUP_RANCHER_db_port**: The rancher database port (needed if you should perform Rancher database dump). Default is `3306`.
 - **BACKUP_RANCHER_db_user**: The rancher database user (needed if you should perform Rancher database dump). Default is `rancher`.
@@ -89,7 +97,7 @@ mysql:
 ```
 
 Few explanation:
-- **regex**: It's the regex to discover service witch must be dumped. This regex is applied to image docker used in service.
+- **regex**: It's the regex to discover service witch must be dumped. This regex is applied first on label called `backup.type` and then to image docker used in service.
 - **template**: It's the template to use to perform MySQL dump.
 
 backup/template/mysql.yml
@@ -131,3 +139,8 @@ We use [Jinja2 templating](http://jinja.pocoo.org/docs/2.9/templates/) and we ad
 - `{{ip}}`: the IP to join the container to perform a remote dump
 - `{{env.SERVICE_ENV}}`: Take the value of service environment called `SERVICE_ENV`
 - `{{target_dir}}`: It's the path where store the dump (`BACKUP_PATH/dump/STACK_NAME/SERVICE_NAME`)
+
+
+# Contribute
+
+Your PR are welcome, but please use develop branch and not master.

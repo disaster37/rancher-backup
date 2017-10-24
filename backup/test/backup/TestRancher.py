@@ -124,7 +124,7 @@ def fakeClient(url, access_key, secret_key):
     return  None
 
 
-class RancherTest(unittest.TestCase):
+class TestRancher(unittest.TestCase):
 
 
     @mock.patch.object(Client, 'list', side_effect=fakeCallApiList)

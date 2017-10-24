@@ -116,7 +116,7 @@ def getAndcheckAllParameters():
     try:
         checkParameters(settings)
     except KeyError as e:
-        raise Exception("Somthing wrong on your config file: %s", e.message)
+        raise Exception("Somthing wrong on your config file: %s" % e.message)
 
     
     logger.info("Rancher URL: %s", settings['rancher']['api']['url'][:-2] + "v2-beta")
@@ -129,12 +129,13 @@ def getAndcheckAllParameters():
     logger.info("Backup full to keep: %s", settings['duplicity']['remove-all-but-n-full'])
     logger.info("Backup incremental chain to keep: %s", settings['duplicity']['remove-all-inc-of-but-n-full'])
     logger.info("Volume size: %s", settings['duplicity']['volsize'])
+    logger.info("Backup options: %s", settings['duplicity']['options'])
     
     # Init services
     try:
         rancherService = Rancher(settings['rancher']['api']['url'][:-2] + "v2-beta", settings['rancher']['api']['key'], settings['rancher']['api']['secret'])
     except Exception as e:
-        raise Exception("Can't connect to rancher API : %s \n%s", e.message, traceback.format_exc())
+        raise Exception("Can't connect to rancher API : %s \n%s" %  (e.message, traceback.format_exc()))
     
     try:
         rancherDatabaseSettings = rancherService.getDatabaseSettings()
@@ -146,7 +147,7 @@ def getAndcheckAllParameters():
     try:
         rancherDatabaseSettings = checkAndGetDatabaseSettings(settings, rancherDatabaseSettings)
     except KeyError as e:
-        raise Exception("You must set the Rancher database settings on config file to dump it: %s", e.message)
+        raise Exception("You must set the Rancher database settings on config file to dump it: %s" % e.message)
     
     
     
@@ -188,7 +189,7 @@ if __name__ == '__main__':
         try:
             getAndcheckAllParameters()
         except Exception as e:
-            logger.error("Somthing wrong on your config file: %s", e.message)
+            logger.error("Error - %s", e.message)
             sys.exit(1)
     
     # Run backup
@@ -197,7 +198,7 @@ if __name__ == '__main__':
         try:
             (settings, rancherDatabaseSettings) = getAndcheckAllParameters()
         except Exception as e:
-            logger.error("Somthing wrong on your config file: %s", e.message)
+            logger.error("Error - %s", e.message)
             sys.exit(1)
 
         backupService = Backup()
@@ -239,7 +240,7 @@ if __name__ == '__main__':
     
             # We run the backup
             logger.info("Start to externalize the backup with Duplicity...")
-            backupService.runDuplicity(settings['duplicity']['source-path'], backend, settings['duplicity']['full-if-older-than'], settings['duplicity']['remove-all-but-n-full'], settings['duplicity']['remove-all-inc-of-but-n-full'], settings['duplicity']['volsize'], settings['duplicity']['options'])
+            backupService.runDuplicity(settings['duplicity']['source-path'], backend, settings['duplicity']['full-if-older-than'], settings['duplicity']['remove-all-but-n-full'], settings['duplicity']['remove-all-inc-of-but-n-full'], settings['duplicity']['volsize'], settings['duplicity']['options'], settings['duplicity']['encrypt-key'])
             logger.info("The backup exporing is finished.")
     
     

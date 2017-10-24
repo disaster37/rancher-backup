@@ -79,9 +79,12 @@ class Rancher(object):
         listStacks = self._client.list('stack')
         targetListStacks = []
         for stack in listStacks:
-            logger.debug("Grab setting for stack %s", stack['name'])
-            stack['settings'] = self._client.action(stack, 'exportconfig')
-            targetListStacks.append(stack)
+            if stack['type'] == 'stack':
+                logger.debug("Grab setting for stack %s", stack['name'])
+                stack['settings'] = self._client.action(stack, 'exportconfig')
+                targetListStacks.append(stack)
+            else:
+                logger.info("Skip Grab setting for stack %s because it's %s type", stack['name'], stack['type'])
 
 
         logger.debug("Return: %s", targetListStacks)

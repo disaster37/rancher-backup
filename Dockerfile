@@ -31,11 +31,11 @@ RUN curl -sL https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cro
     | tar -x -C /usr/local/bin
 
 # Install confd
-ENV CONFD_VERSION="v0.13.7" \
+ENV CONFD_VERSION="0.14.0" \
     CONFD_HOME="/opt/confd"
 RUN mkdir -p "${CONFD_HOME}/etc/conf.d" "${CONFD_HOME}/etc/templates" "${CONFD_HOME}/log" "${CONFD_HOME}/bin" &&\
-    curl -sL https://github.com/yunify/confd/releases/download/${CONFD_VERSION}/confd-alpine-amd64.tar.gz \
-    | tar -zx -C "${CONFD_HOME}/bin/"
+    curl -Lo "${CONFD_HOME}/bin/confd" "https://github.com/kelseyhightower/confd/releases/download/v${CONFD_VERSION}/confd-${CONFD_VERSION}-linux-amd64" &&\
+    chmod +x "${CONFD_HOME}/bin/confd"
 
 # Install s6-overlay
 RUN curl -sL https://github.com/just-containers/s6-overlay/releases/download/v1.19.1.1/s6-overlay-amd64.tar.gz \
