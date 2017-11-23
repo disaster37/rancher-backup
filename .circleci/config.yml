@@ -33,5 +33,5 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            python setup.py install
+            python src/setup.py install
             nosetests -w test/backup
