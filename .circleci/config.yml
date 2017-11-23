@@ -34,5 +34,4 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            export PYTHONPATH=~/repo/backup/src
             nosetests -w test/backup
