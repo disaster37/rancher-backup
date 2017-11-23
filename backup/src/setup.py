@@ -4,7 +4,7 @@ version = 'develop'
 
 setup(
   name = 'rancher-backup',
-  packages = ['fr'],
+  packages = ['fr/webcenter/backup'],
   version = version,
   description = 'Python library to perform backup on Rancher',
   author = 'Sebastien Langoureaux',
