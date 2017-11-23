@@ -33,4 +33,5 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
+            ln -s src/fr venv/fr
             nosetests -w test/backup
