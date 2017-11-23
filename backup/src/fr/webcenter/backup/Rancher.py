@@ -57,7 +57,13 @@ class Rancher(object):
                 if 'instances' in service['links']:
                     service['instances'] = self._client._get(service['links']['instances'])
                     for instance in service['instances']:
-                        instance['host'] = self._client._get(instance['links']['hosts'])[0]
+                        hosts = self._client._get(instance['links']['hosts'])
+                        if isinstance(hosts, list):
+                            instance['host'] = hosts[0]
+                        else:
+                            instance['host'] = None
+                            logger.debug("No host associated to instance %s", instance["name"])
+                            
 
                     logger.debug("Service %s have %d intances", service["name"], len(service['instances']))
                 else:
