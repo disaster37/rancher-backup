@@ -115,7 +115,7 @@ class Backup(object):
                 logger.info("Dumping %s/%s in %s" % (dump['service']['stack']['name'], dump['service']['name'], dump['target_dir']))
                 environments = ""
                 for env in dump['environments']:
-                    environments += " -e '%s'" % env.replace(':', '=')
+                    environments += " -e '%s'" % env.replace(':', '=', 1)
     
     
                 if 'entrypoint' in dump:
