@@ -20,9 +20,12 @@ ENV CONFD_PREFIX_KEY="/backup" \
 # Add libs & tools
 COPY backup/requirements.txt /${APP_HOME}/
 RUN apk update && \
-    apk add python2 py-pip bash tar curl docker duplicity lftp ncftp py-paramiko py-gobject py-boto py-lockfile ca-certificates librsync py-cryptography py-cffi  &&\
+    apk add python2 py-pip bash tar curl docker duplicity lftp ncftp py-paramiko py-gobject py-boto py-lockfile ca-certificates librsync py-cryptography py-cffi rsync  &&\
+    apk add --no-cache --virtual .build-deps gcc python2-dev linux-headers musl-dev &&\
     pip install --upgrade pip &&\
+    pip install azure.storage==0.20.0 pyrax dropbox mediafire urllib3 gdata requests requests_oauthlib python-swiftclient python-keystoneclient  &&\
     pip install -r "${APP_HOME}/requirements.txt" &&\
+    apk del .build-deps &&\
     rm /var/cache/apk/*
 
 

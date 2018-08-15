@@ -36,12 +36,12 @@ class Rancher(object):
         :return list The list of services
         """
 
-        listServices = self._client.list('service')
+        listServices = self._client.list('service', kind='service', state='active')
 
         # We keep only enable services and services that have not 'backup.disable' label set to true
         targetListServices = []
         for service in listServices:
-            if service["type"] == "service" and "imageUuid" in service['launchConfig'] and  service["state"] == "active" and ("labels" not in service['launchConfig'] or ("backup.disable" not in service['launchConfig']['labels'] or service['launchConfig']['labels']['backup.disable'] == "false")):
+            if "imageUuid" in service['launchConfig'] and ("labels" not in service['launchConfig'] or ("backup.disable" not in service['launchConfig']['labels'] or service['launchConfig']['labels']['backup.disable'] == "false")):
 
                 logger.debug("Found service %s", service["name"])
 
@@ -57,7 +57,13 @@ class Rancher(object):
                 if 'instances' in service['links']:
                     service['instances'] = self._client._get(service['links']['instances'])
                     for instance in service['instances']:
-                        instance['host'] = self._client._get(instance['links']['hosts'])[0]
+                        hosts = self._client._get(instance['links']['hosts'])
+                        if isinstance(hosts, list):
+                            instance['host'] = hosts[0]
+                        else:
+                            instance['host'] = None
+                            logger.debug("No host associated to instance %s", instance["name"])
+                            
 
                     logger.debug("Service %s have %d intances", service["name"], len(service['instances']))
                 else:
